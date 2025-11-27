@@ -4,7 +4,6 @@ A suite of Video Poker games built with React and TypeScript, originally ported 
 
 ## Features
 
-- **Iraqi War Most-wanted deck of cards** - Unique themed card graphics
 - **100 starting credits** - Each new game begins with 100 credits
 - **Authentic casino gameplay** - Payout tables and game-play accurately emulate casino video poker machines
 - **Double-down feature** - Winners can optionally double-down and try to select a higher card

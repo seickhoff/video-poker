@@ -1,6 +1,5 @@
 import { Card as CardType, GameSequence } from "../types/game";
 import { PlayingCard } from "./PlayingCard";
-import { Card } from "react-bootstrap";
 
 interface CardHandProps {
   hand: CardType[];
@@ -8,7 +7,6 @@ interface CardHandProps {
   sequence: GameSequence;
   onToggleHold: (index: number) => void;
   onSelectCard?: (index: number) => void;
-  borderColor?: string;
   selectedCardIndex?: number;
 }
 
@@ -18,14 +16,8 @@ export const CardHand = ({
   sequence,
   onToggleHold,
   onSelectCard,
-  borderColor = "#17a2b8",
   selectedCardIndex = -1,
 }: CardHandProps) => {
-  const getBorderColor = (): string => {
-    if (borderColor !== "#17a2b8") return borderColor;
-    return "#17a2b8";
-  };
-
   const renderCards = () => {
     if (sequence === 0) {
       return Array(5)
@@ -38,19 +30,25 @@ export const CardHand = ({
         <PlayingCard
           key={index}
           card={index === 0 ? card : null}
-          isClickable={index > 0}
+          isClickable={index > 0 && selectedCardIndex === -1}
+          isSelected={index === selectedCardIndex && index > 0}
           onCardClick={() => onSelectCard && onSelectCard(index)}
         />
       ));
     }
 
     if (sequence === "e") {
-      return hand.map((card, index) => (
-        <PlayingCard
-          key={index}
-          card={index === 0 || index === selectedCardIndex ? card : null}
-        />
-      ));
+      return hand.map((card, index) => {
+        // Show dealer's card (index 0) and selected card, hide others
+        const shouldShowCard = index === 0 || index === selectedCardIndex;
+        return (
+          <PlayingCard
+            key={index}
+            card={shouldShowCard ? card : null}
+            isSelected={index === selectedCardIndex && index > 0}
+          />
+        );
+      });
     }
 
     return hand.map((card, index) => (
@@ -65,15 +63,14 @@ export const CardHand = ({
   };
 
   return (
-    <Card
+    <div
       style={{
-        border: `5px solid ${getBorderColor()}`,
-        backgroundColor: "#1a4d4d",
-        padding: "20px",
-        boxShadow: "0 4px 8px rgba(0, 0, 0, 0.5)",
+        backgroundColor: "transparent",
+        border: "none",
+        padding: "5px 20px 10px 20px",
       }}
     >
       <div className="d-flex justify-content-center gap-3">{renderCards()}</div>
-    </Card>
+    </div>
   );
 };

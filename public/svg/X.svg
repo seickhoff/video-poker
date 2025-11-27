@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="63mm"
+  height="88mm"
+  viewBox="0 0 238.11075 332.5986"
+  version="1.1">
+
+  <defs>
+    <!-- Original pattern kept exactly -->
+    <pattern
+       id="pattern13545-1"
+       patternUnits="userSpaceOnUse"
+       width="108.6184"
+       height="110.74085"
+       patternTransform="matrix(-0.11059956,0.11059956,-0.11059956,-0.11059956,-254.02376,74.426221)">
+
+      <path
+         style="fill:#131f67;stroke:none"
+         d="m -1016.046,25.720671 -10.7642,16.120541 7.1773,18.006272 -18.6578,-5.255841 -14.9071,12.390288 -0.767,-19.36883 -16.3904,-10.348653 18.1838,-6.714754 4.7773,-18.786107 12.0052,15.218884 z"
+         transform="translate(1070.3552,-11.763587)" />
+
+      <path
+         style="fill:#131f67;stroke:none"
+         d="m -1016.046,25.720671 -10.7642,16.120541 7.1773,18.006272 -18.6578,-5.255841 -14.9071,12.390288 -0.767,-19.36883 -16.3904,-10.348653 18.1838,-6.714754 4.7773,-18.786107 12.0052,15.218884 z"
+         transform="matrix(0.8660254,0.5,-0.5,0.8660254,946.33909,568.72784)" />
+
+      <path
+         style="fill:#131f67;stroke:none"
+         d="m -1016.046,25.720671 -10.7642,16.120541 7.1773,18.006272 -18.6578,-5.255841 -14.9071,12.390288 -0.767,-19.36883 -16.3904,-10.348653 18.1838,-6.714754 4.7773,-18.786107 12.0052,15.218884 z"
+         transform="translate(1124.6644,-11.763587)" />
+
+      <path
+         style="fill:#131f67;stroke:none"
+         d="m -1016.046,25.720671 -10.7642,16.120541 7.1773,18.006272 -18.6578,-5.255841 -14.9071,12.390288 -0.767,-19.36883 -16.3904,-10.348653 18.1838,-6.714754 4.7773,-18.786107 12.0052,15.218884 z"
+         transform="matrix(0.8660254,0.5,-0.5,0.8660254,1000.6483,568.72784)" />
+
+    </pattern>
+  </defs>
+
+  <!-- Scaled card -->
+  <g>
+
+    <!-- Outer white rectangle -->
+    <rect
+      x="0"
+      y="0"
+      width="238.11075"
+      height="332.5986"
+      rx="11.40"
+      ry="11.40"
+      fill="#ffffff"
+      stroke="none" />
+
+    <!-- Inner border (scaled) -->
+    <rect
+      x="14.0"
+      y="14.0"
+      width="210.0"
+      height="304.0"
+      fill="none"
+      stroke="#131f67"
+      stroke-width="5.30" />
+
+    <!-- Patterned area (scaled, pattern unchanged) -->
+    <rect
+      x="20.0"
+      y="20.0"
+      width="198.0"
+      height="292.0"
+      fill="url(#pattern13545-1)"
+      stroke="#131f67"
+      stroke-width="1" />
+
+  </g>
+</svg>

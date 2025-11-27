@@ -101,6 +101,7 @@ export const VideoPokerProvider = ({ children }: { children: ReactNode }) => {
 
     setDoubleDownHand(ddHand);
     setHand(ddHand);
+    setSelectedCardIndex(-1);
     setSequence("d");
   }, [gameType]);
 
@@ -116,20 +117,21 @@ export const VideoPokerProvider = ({ children }: { children: ReactNode }) => {
 
       // Store which card was selected
       setSelectedCardIndex(index);
-      setSequence("e");
 
+      // Calculate and apply result immediately
       if (playerValue > dealerValue) {
         const winAmount = 2 * payout;
         setCredits(originalCredits + winAmount);
         setPayout(winAmount);
-        setTimeout(() => setSequence(2), 2000);
       } else if (playerValue === dealerValue) {
-        setTimeout(() => setSequence(2), 2000);
+        // Tie - keep current payout
       } else {
         setCredits(originalCredits);
         setPayout(0);
-        setTimeout(() => setSequence(2), 2000);
       }
+
+      // Move to sequence 2 to show results
+      setSequence(2);
     },
     [doubleDownHand, payout, originalCredits]
   );

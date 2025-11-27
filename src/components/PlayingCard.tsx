@@ -8,6 +8,7 @@ interface PlayingCardProps {
   showHold?: boolean;
   isClickable?: boolean;
   onCardClick?: () => void;
+  isSelected?: boolean;
 }
 
 export const PlayingCard = ({
@@ -17,57 +18,73 @@ export const PlayingCard = ({
   showHold = false,
   isClickable = false,
   onCardClick,
+  isSelected = false,
 }: PlayingCardProps) => {
   const getCardImage = (card: CardType | null): string => {
     if (!card) {
-      return "/cards/x.jpg";
+      return "/svg/X.svg";
     }
 
-    if (card === "O1") return "/cards/O1.JPG";
-    if (card === "O2") return "/cards/O2.JPG";
+    if (card === "O1") return "/svg/O1.svg";
+    if (card === "O2") return "/svg/O2.svg";
 
-    // Convert card format like "Ah" to correct filename
-    // Face cards (A, J, Q, K) use lowercase suits: Ah.JPG, Kd.JPG
-    // Number cards (2-10) use uppercase suits: 2H.JPG, 10C.JPG
+    // Convert card format like "Ah" to correct SVG filename
+    // All SVG files use uppercase: AC.svg, KD.svg, 2H.svg, 10C.svg
     const rank = card.slice(0, -1);
-    const suit = card.slice(-1);
+    const suit = card.slice(-1).toUpperCase();
 
-    if (["A", "J", "Q", "K"].includes(rank)) {
-      // Face cards: keep suit lowercase
-      return `/cards/${rank}${suit}.JPG`;
-    } else {
-      // Number cards: uppercase suit
-      return `/cards/${rank}${suit.toUpperCase()}.JPG`;
-    }
+    return `/svg/${rank}${suit}.svg`;
   };
 
-  const handleImageClick = () => {
+  const handleImageClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (showHold && onToggleHold) {
+      // Reset transform immediately when card is clicked
+      e.currentTarget.style.transform = "scale(1)";
+      e.currentTarget.style.opacity = "1";
       onToggleHold();
     } else if (isClickable && onCardClick) {
+      // Reset transform immediately when card is clicked
+      e.currentTarget.style.transform = "scale(1)";
+      e.currentTarget.style.opacity = "1";
       onCardClick();
     }
   };
 
   return (
     <div className="text-center">
+      {/* Reserved space for HELD/SELECTED label */}
+      <div
+        style={{
+          height: "30px",
+          marginBottom: "5px",
+          fontWeight: "bold",
+          fontSize: "1.2rem",
+          color: "#ffff00",
+        }}
+      >
+        {isHeld && showHold ? "HELD" : ""}
+        {isSelected ? "SELECTED" : ""}
+      </div>
       <Card
         style={{
           width: "200px",
+          height: "280px",
           cursor: isClickable || showHold ? "pointer" : "default",
-          border: isHeld ? "3px solid #ffc107" : "1px solid #dee2e6",
-          opacity: isClickable && !showHold ? 0.9 : 1,
+          border: "none",
+          opacity: isClickable && !showHold && !isSelected ? 0.9 : 1,
           transition: "all 0.2s ease",
+          overflow: "visible",
+          transform: "scale(1)",
         }}
         onClick={handleImageClick}
         onMouseEnter={(e) => {
-          if (isClickable && !showHold) {
+          if (isClickable && !showHold && !isSelected) {
             e.currentTarget.style.opacity = "1";
             e.currentTarget.style.transform = "scale(1.05)";
           }
         }}
         onMouseLeave={(e) => {
-          if (isClickable && !showHold) {
+          if (isClickable && !showHold && !isSelected) {
             e.currentTarget.style.opacity = "0.9";
             e.currentTarget.style.transform = "scale(1)";
           }
@@ -77,6 +94,11 @@ export const PlayingCard = ({
           variant="top"
           src={getCardImage(card)}
           alt={card || "hidden"}
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "fill",
+          }}
         />
       </Card>
     </div>

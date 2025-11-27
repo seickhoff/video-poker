@@ -1,14 +1,12 @@
 import { Routes, Route } from "react-router-dom";
-import Home from "../pages/Home";
-import DashboardRoutes from "./DashboardRoutes";
-import Settings from "../pages/Settings";
+import { GameMenu } from "../pages/GameMenu";
+import { VideoPokerGame } from "../pages/VideoPokerGame";
 
 export default function AppRoutes() {
   return (
     <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/dashboard/*" element={<DashboardRoutes />} />
-      <Route path="/settings" element={<Settings />} />
+      <Route path="/" element={<GameMenu />} />
+      <Route path="/play" element={<VideoPokerGame />} />
     </Routes>
   );
 }

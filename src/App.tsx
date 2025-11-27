@@ -1,17 +1,16 @@
 import { BrowserRouter as Router } from "react-router-dom";
 import { AppProvider } from "./context/AppProvider";
-import AppNavbar from "./components/AppNavbar";
+import { VideoPokerProvider } from "./context/VideoPokerProvider";
 import AppRoutes from "./routes/AppRoutes";
 
 export default function App() {
   return (
     <AppProvider>
-      <Router>
-        <AppNavbar />
-        <div className="container mt-4">
+      <VideoPokerProvider>
+        <Router>
           <AppRoutes />
-        </div>
-      </Router>
+        </Router>
+      </VideoPokerProvider>
     </AppProvider>
   );
 }

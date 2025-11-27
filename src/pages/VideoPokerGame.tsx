@@ -706,19 +706,96 @@ export const VideoPokerGame = () => {
             </>
           )}
 
-          {/* Game Over Message */}
+          {/* Game Over - Sequence 2 with 0 credits */}
           {credits === 0 && sequence === 2 && (
-            <div className="text-center mt-4">
-              <h3 className="text-danger">Game Over - Out of Credits</h3>
-              <Button
-                variant="primary"
-                size="lg"
-                onClick={handleMainMenu}
-                className="mt-3"
-              >
-                Return to Main Menu
-              </Button>
-            </div>
+            <>
+              {/* Mobile: Row 1 - CREDIT $0 */}
+              <Row className="mb-4 d-md-none">
+                <Col
+                  xs={12}
+                  className="d-flex align-items-center justify-content-end"
+                >
+                  <div
+                    style={{
+                      color: "#ff6600",
+                      fontWeight: "bold",
+                      fontFamily: "monospace",
+                      fontSize: "clamp(0.9rem, 2.5vw, 1.5rem)",
+                      WebkitTextStroke: "clamp(0.5px, 0.15vw, 1px) #ffff00",
+                      textShadow: "2px 2px 4px rgba(0, 0, 0, 0.8)",
+                    }}
+                  >
+                    CREDIT $0
+                  </div>
+                </Col>
+              </Row>
+              {/* Mobile: Row 2 - MENU Button */}
+              <Row className="mb-3 d-md-none">
+                <Col xs={12} className="d-flex justify-content-center">
+                  <Button
+                    variant=""
+                    size="lg"
+                    onClick={handleMainMenu}
+                    style={{
+                      backgroundColor: "#666666",
+                      color: "#ffffff",
+                      border: "3px solid #cccccc",
+                      fontWeight: "bold",
+                      fontSize: "clamp(0.7rem, 1.8vw, 1.1rem)",
+                      padding: "clamp(4px, 1vw, 8px) clamp(6px, 1.5vw, 16px)",
+                      boxShadow: "0 4px 6px rgba(0, 0, 0, 0.5)",
+                      fontFamily: "monospace",
+                      minWidth: "clamp(60px, 15vw, 120px)",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    MENU
+                  </Button>
+                </Col>
+              </Row>
+              {/* Desktop: Single Row */}
+              <Row className="mb-3 d-none d-md-flex">
+                <Col md={3} className="d-flex align-items-center">
+                  <Button
+                    variant=""
+                    size="lg"
+                    onClick={handleMainMenu}
+                    style={{
+                      backgroundColor: "#666666",
+                      color: "#ffffff",
+                      border: "3px solid #cccccc",
+                      fontWeight: "bold",
+                      fontSize: "clamp(0.8rem, 2vw, 1.1rem)",
+                      padding: "clamp(4px, 1vw, 8px) clamp(8px, 2vw, 16px)",
+                      boxShadow: "0 4px 6px rgba(0, 0, 0, 0.5)",
+                      fontFamily: "monospace",
+                      minWidth: "clamp(60px, 15vw, 150px)",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    MENU
+                  </Button>
+                </Col>
+                <Col md={6}></Col>
+                <Col
+                  md={3}
+                  className="d-flex align-items-center justify-content-end"
+                >
+                  <div
+                    style={{
+                      color: "#ff6600",
+                      fontWeight: "bold",
+                      fontFamily: "monospace",
+                      fontSize: "clamp(0.9rem, 2.5vw, 1.5rem)",
+                      WebkitTextStroke: "clamp(0.5px, 0.15vw, 1px) #ffff00",
+                      textShadow: "2px 2px 4px rgba(0, 0, 0, 0.8)",
+                    }}
+                  >
+                    CREDIT $0
+                  </div>
+                </Col>
+              </Row>
+            </>
           )}
         </Col>
       </Row>

@@ -13,7 +13,7 @@ import { getJokerCount } from "../utils/gameConfigs";
 
 export const VideoPokerProvider = ({ children }: { children: ReactNode }) => {
   const [gameType, setGameType] = useState<GameType | null>(null);
-  const [credits, setCredits] = useState<number>(100);
+  const [credits, setCredits] = useState<number>(10);
   const [sequence, setSequence] = useState<GameSequence>(0);
   const [hand, setHand] = useState<Card[]>([]);
   const [deck, setDeck] = useState<Card[]>([]);

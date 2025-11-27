@@ -83,13 +83,17 @@ export const PlayingCard = ({
         }}
         onClick={handleImageClick}
         onMouseEnter={(e) => {
-          if (isClickable && !showHold && !isSelected) {
+          if (showHold && !isHeld) {
+            e.currentTarget.style.transform = "scale(1.05)";
+          } else if (isClickable && !isSelected) {
             e.currentTarget.style.opacity = "1";
             e.currentTarget.style.transform = "scale(1.05)";
           }
         }}
         onMouseLeave={(e) => {
-          if (isClickable && !showHold && !isSelected) {
+          if (showHold && !isHeld) {
+            e.currentTarget.style.transform = "scale(1)";
+          } else if (isClickable && !isSelected) {
             e.currentTarget.style.opacity = "0.9";
             e.currentTarget.style.transform = "scale(1)";
           }

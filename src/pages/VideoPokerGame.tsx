@@ -89,7 +89,7 @@ export const VideoPokerGame = () => {
                 backgroundColor: "#000066",
                 border: "2px solid #ffd700",
                 borderRadius: "5px",
-                minHeight: "45px",
+                height: "clamp(50px, 10vw, 60px)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -100,6 +100,7 @@ export const VideoPokerGame = () => {
                 style={{
                   color: sequence === "d" ? "#ff6600" : "#00ff00",
                   fontWeight: "bold",
+                  fontSize: "clamp(0.75rem, 2vw, 1rem)",
                 }}
               >
                 {sequence === 0 &&
@@ -124,164 +125,38 @@ export const VideoPokerGame = () => {
             </div>
           </div>
 
-          {/* Controls Row */}
-          <Row className="mb-1">
-            {sequence === 1 || sequence === "d" ? (
-              <Col className="d-flex align-items-center justify-content-center">
-                <Button
-                  size="lg"
-                  onClick={handleMainAction}
-                  style={{
-                    visibility: sequence === "d" ? "hidden" : "visible",
-                    backgroundColor: "#ffd700",
-                    color: "#000000",
-                    border: "3px solid #ffff00",
-                    fontWeight: "bold",
-                    fontSize: "1.1rem",
-                    padding: "8px 16px",
-                    boxShadow: "0 4px 6px rgba(0, 0, 0, 0.5)",
-                    fontFamily: "monospace",
-                    minWidth: "150px",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {getButtonText()}
-                </Button>
-              </Col>
-            ) : sequence === 2 && credits > 0 ? (
-              <>
-                <Col md={3} className="d-flex align-items-center">
-                  <Button
-                    size="lg"
-                    onClick={handleMainMenu}
-                    style={{
-                      backgroundColor: "#666666",
-                      color: "#ffffff",
-                      border: "3px solid #cccccc",
-                      fontWeight: "bold",
-                      fontSize: "1.1rem",
-                      padding: "8px 16px",
-                      boxShadow: "0 4px 6px rgba(0, 0, 0, 0.5)",
-                      fontFamily: "monospace",
-                      minWidth: "150px",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    MENU
-                  </Button>
-                </Col>
+          {/* Card Hand */}
+          <div className="mb-2">
+            <CardHand
+              hand={hand}
+              heldCards={heldCards}
+              sequence={sequence}
+              onToggleHold={toggleHoldCard}
+              onSelectCard={selectDoubleDownCard}
+              selectedCardIndex={selectedCardIndex}
+            />
+          </div>
+
+          {/* Controls - Two Row Layout */}
+
+          {/* Sequence 0: Betting */}
+          {sequence === 0 && credits > 0 && (
+            <>
+              {/* Mobile: Row 1 - Bet Selection and Credit */}
+              <Row className="mb-4 d-md-none">
                 <Col
-                  md={6}
-                  className="d-flex align-items-center justify-content-center gap-3"
+                  xs={12}
+                  className="d-flex align-items-center justify-content-between"
                 >
-                  {payout > 0 ? (
-                    <>
-                      <Button
-                        size="lg"
-                        onClick={handleDoubleDown}
-                        style={{
-                          backgroundColor: "#ff6600",
-                          color: "#ffffff",
-                          border: "3px solid #ffd700",
-                          fontWeight: "bold",
-                          fontSize: "1.1rem",
-                          padding: "8px 16px",
-                          boxShadow: "0 4px 6px rgba(0, 0, 0, 0.5)",
-                          fontFamily: "monospace",
-                          minWidth: "150px",
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        DOUBLE DOWN
-                      </Button>
-                      <Button
-                        size="lg"
-                        onClick={handleContinue}
-                        style={{
-                          backgroundColor: "#00ff00",
-                          color: "#000000",
-                          border: "3px solid #00cc00",
-                          fontWeight: "bold",
-                          fontSize: "1.1rem",
-                          padding: "8px 16px",
-                          boxShadow: "0 4px 6px rgba(0, 0, 0, 0.5)",
-                          fontFamily: "monospace",
-                          minWidth: "150px",
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        CONTINUE
-                      </Button>
-                    </>
-                  ) : (
-                    <Button
-                      size="lg"
-                      onClick={handleContinue}
-                      style={{
-                        backgroundColor: "#00ff00",
-                        color: "#000000",
-                        border: "3px solid #00cc00",
-                        fontWeight: "bold",
-                        fontSize: "1.1rem",
-                        padding: "8px 16px",
-                        boxShadow: "0 4px 6px rgba(0, 0, 0, 0.5)",
-                        fontFamily: "monospace",
-                        minWidth: "150px",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      CONTINUE
-                    </Button>
-                  )}
-                </Col>
-                <Col
-                  md={3}
-                  className="d-flex align-items-center justify-content-end gap-3 flex-nowrap"
-                >
-                  {/* Status Display */}
-                  {payout > 0 ? (
-                    <div
-                      style={{
-                        backgroundColor: "#00ff00",
-                        color: "#000000",
-                        border: "3px solid #ffd700",
-                        borderRadius: "8px",
-                        fontWeight: "bold",
-                        fontSize: "1.1rem",
-                        padding: "8px 16px",
-                        fontFamily: "monospace",
-                        minWidth: "150px",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      WON ${payout}
-                    </div>
-                  ) : (
-                    <div
-                      style={{
-                        backgroundColor: "#ff0000",
-                        color: "#ffffff",
-                        border: "3px solid #000000",
-                        borderRadius: "8px",
-                        fontWeight: "bold",
-                        fontSize: "1.1rem",
-                        padding: "8px 16px",
-                        fontFamily: "monospace",
-                        minWidth: "150px",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      LOST
-                    </div>
-                  )}
-                </Col>
-              </>
-            ) : sequence === 0 && credits > 0 ? (
-              <>
-                <Col md={3} className="d-flex align-items-center gap-3">
                   {/* Betting Options */}
                   <div className="d-flex gap-2 align-items-center">
-                    <span style={{ color: "#ffff00", fontWeight: "bold" }}>
+                    <span
+                      style={{
+                        color: "#ffff00",
+                        fontWeight: "bold",
+                        fontSize: "clamp(0.8rem, 2vw, 1rem)",
+                      }}
+                    >
                       BET
                     </span>
                     {[1, 2, 3, 4, 5].map((bet) => (
@@ -296,7 +171,83 @@ export const VideoPokerGame = () => {
                           color: wager === bet ? "#000000" : "#ffff00",
                           border: `2px solid ${wager === bet ? "#ffff00" : "#808000"}`,
                           fontWeight: "bold",
-                          minWidth: "40px",
+                          minWidth: "clamp(25px, 6vw, 40px)",
+                          fontSize: "clamp(0.7rem, 1.8vw, 0.9rem)",
+                          padding:
+                            "clamp(2px, 0.5vw, 4px) clamp(4px, 1vw, 8px)",
+                        }}
+                      >
+                        {bet}
+                      </Button>
+                    ))}
+                  </div>
+                  <div
+                    style={{
+                      color: "#ff6600",
+                      fontWeight: "bold",
+                      fontFamily: "monospace",
+                      fontSize: "clamp(0.9rem, 2.5vw, 1.5rem)",
+                      WebkitTextStroke: "clamp(0.5px, 0.15vw, 1px) #ffff00",
+                      textShadow: "2px 2px 4px rgba(0, 0, 0, 0.8)",
+                    }}
+                  >
+                    CREDIT ${credits}
+                  </div>
+                </Col>
+              </Row>
+              {/* Mobile: Row 2 - Show Cards Button */}
+              <Row className="mb-3 d-md-none">
+                <Col xs={12} className="d-flex justify-content-center">
+                  <Button
+                    size="lg"
+                    onClick={handleMainAction}
+                    style={{
+                      backgroundColor: "#ffd700",
+                      color: "#000000",
+                      border: "3px solid #ffff00",
+                      fontWeight: "bold",
+                      fontSize: "clamp(0.8rem, 2vw, 1.1rem)",
+                      padding: "clamp(4px, 1vw, 8px) clamp(8px, 2vw, 16px)",
+                      boxShadow: "0 4px 6px rgba(0, 0, 0, 0.5)",
+                      fontFamily: "monospace",
+                      minWidth: "clamp(80px, 20vw, 150px)",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {getButtonText()}
+                  </Button>
+                </Col>
+              </Row>
+              {/* Desktop: Single Row */}
+              <Row className="mb-3 d-none d-md-flex">
+                <Col md={3} className="d-flex align-items-center gap-3">
+                  {/* Betting Options */}
+                  <div className="d-flex gap-2 align-items-center">
+                    <span
+                      style={{
+                        color: "#ffff00",
+                        fontWeight: "bold",
+                        fontSize: "clamp(0.8rem, 2vw, 1rem)",
+                      }}
+                    >
+                      BET
+                    </span>
+                    {[1, 2, 3, 4, 5].map((bet) => (
+                      <Button
+                        key={bet}
+                        size="sm"
+                        onClick={() => setBet(bet)}
+                        disabled={credits < bet}
+                        style={{
+                          backgroundColor:
+                            wager === bet ? "#ffd700" : "#4d4d00",
+                          color: wager === bet ? "#000000" : "#ffff00",
+                          border: `2px solid ${wager === bet ? "#ffff00" : "#808000"}`,
+                          fontWeight: "bold",
+                          minWidth: "clamp(25px, 6vw, 40px)",
+                          fontSize: "clamp(0.7rem, 1.8vw, 0.9rem)",
+                          padding:
+                            "clamp(2px, 0.5vw, 4px) clamp(4px, 1vw, 8px)",
                         }}
                       >
                         {bet}
@@ -304,7 +255,6 @@ export const VideoPokerGame = () => {
                     ))}
                   </div>
                 </Col>
-
                 <Col
                   md={6}
                   className="d-flex align-items-center justify-content-center"
@@ -317,61 +267,444 @@ export const VideoPokerGame = () => {
                       color: "#000000",
                       border: "3px solid #ffff00",
                       fontWeight: "bold",
-                      fontSize: "1.1rem",
-                      padding: "8px 16px",
+                      fontSize: "clamp(0.8rem, 2vw, 1.1rem)",
+                      padding: "clamp(4px, 1vw, 8px) clamp(8px, 2vw, 16px)",
                       boxShadow: "0 4px 6px rgba(0, 0, 0, 0.5)",
                       fontFamily: "monospace",
-                      minWidth: "150px",
+                      minWidth: "clamp(80px, 20vw, 150px)",
                       whiteSpace: "nowrap",
                     }}
                   >
                     {getButtonText()}
                   </Button>
                 </Col>
+                <Col
+                  md={3}
+                  className="d-flex align-items-center justify-content-end"
+                >
+                  <div
+                    style={{
+                      color: "#ff6600",
+                      fontWeight: "bold",
+                      fontFamily: "monospace",
+                      fontSize: "clamp(0.9rem, 2.5vw, 1.5rem)",
+                      WebkitTextStroke: "clamp(0.5px, 0.15vw, 1px) #ffff00",
+                      textShadow: "2px 2px 4px rgba(0, 0, 0, 0.8)",
+                    }}
+                  >
+                    CREDIT ${credits}
+                  </div>
+                </Col>
+              </Row>
+            </>
+          )}
 
+          {/* Sequence 1: Draw Cards */}
+          {sequence === 1 && (
+            <>
+              {/* Mobile: Row 1 - BET and CREDIT */}
+              <Row className="mb-4 d-md-none">
+                <Col
+                  xs={12}
+                  className="d-flex align-items-center justify-content-between"
+                >
+                  <div
+                    style={{
+                      color: "#ff6600",
+                      fontWeight: "bold",
+                      fontFamily: "monospace",
+                      fontSize: "clamp(0.9rem, 2.5vw, 1.5rem)",
+                      WebkitTextStroke: "clamp(0.5px, 0.15vw, 1px) #ffff00",
+                      textShadow: "2px 2px 4px rgba(0, 0, 0, 0.8)",
+                    }}
+                  >
+                    BET {wager}
+                  </div>
+                  <div
+                    style={{
+                      color: "#ff6600",
+                      fontWeight: "bold",
+                      fontFamily: "monospace",
+                      fontSize: "clamp(0.9rem, 2.5vw, 1.5rem)",
+                      WebkitTextStroke: "clamp(0.5px, 0.15vw, 1px) #ffff00",
+                      textShadow: "2px 2px 4px rgba(0, 0, 0, 0.8)",
+                    }}
+                  >
+                    CREDIT ${credits}
+                  </div>
+                </Col>
+              </Row>
+              {/* Mobile: Row 2 - Draw Cards Button */}
+              <Row className="mb-3 d-md-none">
+                <Col xs={12} className="d-flex justify-content-center">
+                  <Button
+                    size="lg"
+                    onClick={handleMainAction}
+                    style={{
+                      backgroundColor: "#ffd700",
+                      color: "#000000",
+                      border: "3px solid #ffff00",
+                      fontWeight: "bold",
+                      fontSize: "clamp(0.8rem, 2vw, 1.1rem)",
+                      padding: "clamp(4px, 1vw, 8px) clamp(8px, 2vw, 16px)",
+                      boxShadow: "0 4px 6px rgba(0, 0, 0, 0.5)",
+                      fontFamily: "monospace",
+                      minWidth: "clamp(80px, 20vw, 150px)",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {getButtonText()}
+                  </Button>
+                </Col>
+              </Row>
+              {/* Desktop: Single Row */}
+              <Row className="mb-3 d-none d-md-flex">
+                <Col md={3} className="d-flex align-items-center">
+                  <div
+                    style={{
+                      color: "#ff6600",
+                      fontWeight: "bold",
+                      fontFamily: "monospace",
+                      fontSize: "clamp(0.9rem, 2.5vw, 1.5rem)",
+                      WebkitTextStroke: "clamp(0.5px, 0.15vw, 1px) #ffff00",
+                      textShadow: "2px 2px 4px rgba(0, 0, 0, 0.8)",
+                    }}
+                  >
+                    BET {wager}
+                  </div>
+                </Col>
+                <Col
+                  md={6}
+                  className="d-flex align-items-center justify-content-center"
+                >
+                  <Button
+                    size="lg"
+                    onClick={handleMainAction}
+                    style={{
+                      backgroundColor: "#ffd700",
+                      color: "#000000",
+                      border: "3px solid #ffff00",
+                      fontWeight: "bold",
+                      fontSize: "clamp(0.8rem, 2vw, 1.1rem)",
+                      padding: "clamp(4px, 1vw, 8px) clamp(8px, 2vw, 16px)",
+                      boxShadow: "0 4px 6px rgba(0, 0, 0, 0.5)",
+                      fontFamily: "monospace",
+                      minWidth: "clamp(80px, 20vw, 150px)",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {getButtonText()}
+                  </Button>
+                </Col>
+                <Col
+                  md={3}
+                  className="d-flex align-items-center justify-content-end"
+                >
+                  <div
+                    style={{
+                      color: "#ff6600",
+                      fontWeight: "bold",
+                      fontFamily: "monospace",
+                      fontSize: "clamp(0.9rem, 2.5vw, 1.5rem)",
+                      WebkitTextStroke: "clamp(0.5px, 0.15vw, 1px) #ffff00",
+                      textShadow: "2px 2px 4px rgba(0, 0, 0, 0.8)",
+                    }}
+                  >
+                    CREDIT ${credits}
+                  </div>
+                </Col>
+              </Row>
+            </>
+          )}
+
+          {/* Sequence 2: Results */}
+          {sequence === 2 && credits > 0 && (
+            <>
+              {/* Mobile: Row 1 - WIN/LOSE and CREDIT */}
+              <Row className="mb-4 d-md-none">
+                <Col
+                  xs={12}
+                  className="d-flex align-items-center justify-content-between"
+                >
+                  {payout > 0 ? (
+                    <div
+                      style={{
+                        color: "#00ff00",
+                        fontWeight: "bold",
+                        fontFamily: "monospace",
+                        fontSize: "clamp(0.8rem, 2.2vw, 1.5rem)",
+                        WebkitTextStroke: "clamp(0.5px, 0.15vw, 1px) #00cc00",
+                        textShadow: "2px 2px 4px rgba(0, 0, 0, 0.8)",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      WIN ${payout}
+                    </div>
+                  ) : (
+                    <div
+                      style={{
+                        color: "#ff0000",
+                        fontWeight: "bold",
+                        fontFamily: "monospace",
+                        fontSize: "clamp(0.8rem, 2.2vw, 1.5rem)",
+                        WebkitTextStroke: "clamp(0.5px, 0.15vw, 1px) #cc0000",
+                        textShadow: "2px 2px 4px rgba(0, 0, 0, 0.8)",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      LOSE
+                    </div>
+                  )}
+                  <div
+                    style={{
+                      color: "#ff6600",
+                      fontWeight: "bold",
+                      fontFamily: "monospace",
+                      fontSize: "clamp(0.9rem, 2.5vw, 1.5rem)",
+                      WebkitTextStroke: "clamp(0.5px, 0.15vw, 1px) #ffff00",
+                      textShadow: "2px 2px 4px rgba(0, 0, 0, 0.8)",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    CREDIT ${credits}
+                  </div>
+                </Col>
+              </Row>
+              {/* Mobile: Row 2 - Buttons */}
+              <Row className="mb-3 d-md-none">
+                <Col
+                  xs={12}
+                  className="d-flex align-items-center justify-content-center gap-3"
+                >
+                  <Button
+                    variant=""
+                    size="lg"
+                    onClick={handleMainMenu}
+                    style={{
+                      backgroundColor: "#666666",
+                      color: "#ffffff",
+                      border: "3px solid #cccccc",
+                      fontWeight: "bold",
+                      fontSize: "clamp(0.7rem, 1.8vw, 1.1rem)",
+                      padding: "clamp(4px, 1vw, 8px) clamp(6px, 1.5vw, 16px)",
+                      boxShadow: "0 4px 6px rgba(0, 0, 0, 0.5)",
+                      fontFamily: "monospace",
+                      minWidth: "clamp(60px, 15vw, 120px)",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    MENU
+                  </Button>
+                  {payout > 0 && (
+                    <Button
+                      size="lg"
+                      onClick={handleDoubleDown}
+                      style={{
+                        backgroundColor: "#ff6600",
+                        color: "#ffffff",
+                        border: "3px solid #ffd700",
+                        fontWeight: "bold",
+                        fontSize: "clamp(0.7rem, 1.8vw, 1.1rem)",
+                        padding: "clamp(4px, 1vw, 8px) clamp(6px, 1.5vw, 16px)",
+                        boxShadow: "0 4px 6px rgba(0, 0, 0, 0.5)",
+                        fontFamily: "monospace",
+                        minWidth: "clamp(70px, 18vw, 120px)",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      DOUBLE DOWN
+                    </Button>
+                  )}
+                  <Button
+                    size="lg"
+                    onClick={handleContinue}
+                    style={{
+                      backgroundColor: "#00ff00",
+                      color: "#000000",
+                      border: "3px solid #00cc00",
+                      fontWeight: "bold",
+                      fontSize: "clamp(0.7rem, 1.8vw, 1.1rem)",
+                      padding: "clamp(4px, 1vw, 8px) clamp(6px, 1.5vw, 16px)",
+                      boxShadow: "0 4px 6px rgba(0, 0, 0, 0.5)",
+                      fontFamily: "monospace",
+                      minWidth: "clamp(70px, 18vw, 120px)",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    CONTINUE
+                  </Button>
+                </Col>
+              </Row>
+              {/* Desktop: Single Row */}
+              <Row className="mb-3 d-none d-md-flex">
+                <Col md={3} className="d-flex align-items-center">
+                  <Button
+                    variant=""
+                    size="lg"
+                    onClick={handleMainMenu}
+                    style={{
+                      backgroundColor: "#666666",
+                      color: "#ffffff",
+                      border: "3px solid #cccccc",
+                      fontWeight: "bold",
+                      fontSize: "clamp(0.8rem, 2vw, 1.1rem)",
+                      padding: "clamp(4px, 1vw, 8px) clamp(8px, 2vw, 16px)",
+                      boxShadow: "0 4px 6px rgba(0, 0, 0, 0.5)",
+                      fontFamily: "monospace",
+                      minWidth: "clamp(60px, 15vw, 150px)",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    MENU
+                  </Button>
+                </Col>
+                <Col
+                  md={6}
+                  className="d-flex align-items-center justify-content-center gap-3"
+                >
+                  {payout > 0 && (
+                    <Button
+                      size="lg"
+                      onClick={handleDoubleDown}
+                      style={{
+                        backgroundColor: "#ff6600",
+                        color: "#ffffff",
+                        border: "3px solid #ffd700",
+                        fontWeight: "bold",
+                        fontSize: "clamp(0.7rem, 1.8vw, 1.1rem)",
+                        padding: "clamp(4px, 1vw, 8px) clamp(6px, 1.5vw, 16px)",
+                        boxShadow: "0 4px 6px rgba(0, 0, 0, 0.5)",
+                        fontFamily: "monospace",
+                        minWidth: "clamp(70px, 18vw, 150px)",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      DOUBLE DOWN
+                    </Button>
+                  )}
+                  <Button
+                    size="lg"
+                    onClick={handleContinue}
+                    style={{
+                      backgroundColor: "#00ff00",
+                      color: "#000000",
+                      border: "3px solid #00cc00",
+                      fontWeight: "bold",
+                      fontSize: "clamp(0.8rem, 2vw, 1.1rem)",
+                      padding: "clamp(4px, 1vw, 8px) clamp(8px, 2vw, 16px)",
+                      boxShadow: "0 4px 6px rgba(0, 0, 0, 0.5)",
+                      fontFamily: "monospace",
+                      minWidth: "clamp(80px, 20vw, 150px)",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    CONTINUE
+                  </Button>
+                </Col>
                 <Col
                   md={3}
                   className="d-flex align-items-center justify-content-end gap-3 flex-nowrap"
-                ></Col>
-              </>
-            ) : (
-              <Col></Col>
-            )}
-          </Row>
+                >
+                  <div className="d-flex gap-4 align-items-center flex-nowrap">
+                    {payout > 0 ? (
+                      <div
+                        style={{
+                          color: "#00ff00",
+                          fontWeight: "bold",
+                          fontFamily: "monospace",
+                          fontSize: "clamp(0.8rem, 2.2vw, 1.5rem)",
+                          WebkitTextStroke: "clamp(0.5px, 0.15vw, 1px) #00cc00",
+                          textShadow: "2px 2px 4px rgba(0, 0, 0, 0.8)",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        WIN ${payout}
+                      </div>
+                    ) : (
+                      <div
+                        style={{
+                          color: "#ff0000",
+                          fontWeight: "bold",
+                          fontFamily: "monospace",
+                          fontSize: "clamp(0.8rem, 2.2vw, 1.5rem)",
+                          WebkitTextStroke: "clamp(0.5px, 0.15vw, 1px) #cc0000",
+                          textShadow: "2px 2px 4px rgba(0, 0, 0, 0.8)",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        LOSE
+                      </div>
+                    )}
+                    <div
+                      style={{
+                        color: "#ff6600",
+                        fontWeight: "bold",
+                        fontFamily: "monospace",
+                        fontSize: "clamp(0.9rem, 2.5vw, 1.5rem)",
+                        WebkitTextStroke: "clamp(0.5px, 0.15vw, 1px) #ffff00",
+                        textShadow: "2px 2px 4px rgba(0, 0, 0, 0.8)",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      CREDIT ${credits}
+                    </div>
+                  </div>
+                </Col>
+              </Row>
+            </>
+          )}
 
-          {/* Card Hand */}
-          <div className="mb-2">
-            <CardHand
-              hand={hand}
-              heldCards={heldCards}
-              sequence={sequence}
-              onToggleHold={toggleHoldCard}
-              onSelectCard={selectDoubleDownCard}
-              selectedCardIndex={selectedCardIndex}
-            />
-          </div>
-
-          {/* Credits Display Below Cards */}
-          <Row className="mb-3">
-            <Col className="d-flex justify-content-end">
-              <div
-                style={{
-                  backgroundColor: "#000000",
-                  color: "#ff6600",
-                  border: "3px solid #ffd700",
-                  borderRadius: "8px",
-                  fontWeight: "bold",
-                  fontFamily: "monospace",
-                  fontSize: "1.1rem",
-                  padding: "8px 16px",
-                  minWidth: "150px",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                CREDIT ${credits}
-              </div>
-            </Col>
-          </Row>
+          {/* Sequence d: Double Down */}
+          {sequence === "d" && (
+            <>
+              {/* Mobile: Row 1 - Just CREDIT */}
+              <Row className="mb-4 d-md-none">
+                <Col
+                  xs={12}
+                  className="d-flex align-items-center justify-content-end"
+                >
+                  <div
+                    style={{
+                      color: "#ff6600",
+                      fontWeight: "bold",
+                      fontFamily: "monospace",
+                      fontSize: "clamp(0.9rem, 2.5vw, 1.5rem)",
+                      WebkitTextStroke: "clamp(0.5px, 0.15vw, 1px) #ffff00",
+                      textShadow: "2px 2px 4px rgba(0, 0, 0, 0.8)",
+                    }}
+                  >
+                    CREDIT ${credits}
+                  </div>
+                </Col>
+              </Row>
+              {/* Mobile: Row 2 - Empty (waiting for card selection) */}
+              <Row className="mb-3 d-md-none">
+                <Col xs={12}></Col>
+              </Row>
+              {/* Desktop: Single Row */}
+              <Row className="mb-3 d-none d-md-flex">
+                <Col md={3}></Col>
+                <Col md={6}></Col>
+                <Col
+                  md={3}
+                  className="d-flex align-items-center justify-content-end"
+                >
+                  <div
+                    style={{
+                      color: "#ff6600",
+                      fontWeight: "bold",
+                      fontFamily: "monospace",
+                      fontSize: "clamp(0.9rem, 2.5vw, 1.5rem)",
+                      WebkitTextStroke: "clamp(0.5px, 0.15vw, 1px) #ffff00",
+                      textShadow: "2px 2px 4px rgba(0, 0, 0, 0.8)",
+                    }}
+                  >
+                    CREDIT ${credits}
+                  </div>
+                </Col>
+              </Row>
+            </>
+          )}
 
           {/* Game Over Message */}
           {credits === 0 && sequence === 2 && (

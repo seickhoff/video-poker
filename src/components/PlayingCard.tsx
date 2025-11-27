@@ -51,15 +51,20 @@ export const PlayingCard = ({
   };
 
   return (
-    <div className="text-center">
+    <div className="text-center" style={{ flex: "1 1 0", minWidth: 0 }}>
       {/* Reserved space for HELD/SELECTED label */}
       <div
         style={{
-          height: "30px",
+          height: "clamp(25px, 5vw, 35px)",
           marginBottom: "5px",
           fontWeight: "bold",
-          fontSize: "1.2rem",
-          color: "#ffff00",
+          fontSize: "clamp(0.75rem, 2vw, 1.2rem)",
+          color: "#ffffff",
+          fontFamily: "monospace",
+          textShadow: "1px 1px 3px rgba(0, 0, 0, 0.8)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
         }}
       >
         {isHeld && showHold ? "HELD" : ""}
@@ -67,8 +72,8 @@ export const PlayingCard = ({
       </div>
       <Card
         style={{
-          width: "200px",
-          height: "280px",
+          width: "100%",
+          aspectRatio: "5 / 7",
           cursor: isClickable || showHold ? "pointer" : "default",
           border: "none",
           opacity: isClickable && !showHold && !isSelected ? 0.9 : 1,

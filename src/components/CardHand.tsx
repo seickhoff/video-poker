@@ -51,6 +51,20 @@ export const CardHand = ({
       });
     }
 
+    // Sequence 2 during double down - show dealer card and selected card only
+    if (sequence === 2 && selectedCardIndex > 0) {
+      return hand.map((card, index) => {
+        const shouldShowCard = index === 0 || index === selectedCardIndex;
+        return (
+          <PlayingCard
+            key={index}
+            card={shouldShowCard ? card : null}
+            isSelected={index === selectedCardIndex && index > 0}
+          />
+        );
+      });
+    }
+
     return hand.map((card, index) => (
       <PlayingCard
         key={index}
@@ -67,10 +81,18 @@ export const CardHand = ({
       style={{
         backgroundColor: "transparent",
         border: "none",
-        padding: "5px 20px 10px 20px",
+        padding: "5px 0 10px 0",
       }}
     >
-      <div className="d-flex justify-content-center gap-3">{renderCards()}</div>
+      <div
+        className="d-flex justify-content-between"
+        style={{
+          width: "100%",
+          gap: "1.5%",
+        }}
+      >
+        {renderCards()}
+      </div>
     </div>
   );
 };

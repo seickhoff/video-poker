@@ -21,13 +21,13 @@ export const PayoutTable = ({
         backgroundColor: "#000066",
         color: "#ffffff",
         fontWeight: "bold",
-        lineHeight: "1.2",
+        lineHeight: "1.1",
       };
     }
     return {
       backgroundColor: "#000066",
       color: "#ffff00",
-      lineHeight: "1.2",
+      lineHeight: "1.1",
     };
   };
 
@@ -39,9 +39,9 @@ export const PayoutTable = ({
       borderRight: "none" as const,
       color: "#ffff00" as const,
       backgroundColor: "#000066" as const,
-      padding: "4px 8px" as const,
+      padding: "2px 4px" as const,
       textAlign: "right" as const,
-      width: "80px" as const,
+      width: "auto" as const,
     };
 
     if (
@@ -71,10 +71,13 @@ export const PayoutTable = ({
       <h1
         className="text-center p-2"
         style={{
-          color: "#ffff00",
+          color: "#ff6600",
           fontWeight: "bold",
           textTransform: "uppercase",
           fontFamily: "monospace",
+          WebkitTextStroke: "clamp(1px, 0.3vw, 2px) #ffff00",
+          textShadow: "3px 3px 5px rgba(0, 0, 0, 0.8)",
+          fontSize: "clamp(1.5rem, 5vw, 2.5rem)",
         }}
       >
         {gameType}
@@ -94,7 +97,7 @@ export const PayoutTable = ({
             color: "#ffff00",
             borderCollapse: "collapse",
             textTransform: "uppercase",
-            fontSize: "1.1rem",
+            fontSize: "clamp(0.7rem, 2.5vw, 1.3rem)",
             fontFamily: "monospace",
           }}
         >
@@ -104,7 +107,8 @@ export const PayoutTable = ({
                 <td
                   className="text-start"
                   style={{
-                    width: "300px",
+                    width: "auto",
+                    minWidth: "0",
                     borderTop: "none",
                     borderBottom: "none",
                     borderLeft: "none",
@@ -113,7 +117,7 @@ export const PayoutTable = ({
                       currentHand === entry.hand && currentHand !== ""
                         ? "#ffffff"
                         : "#ffff00",
-                    padding: "4px 8px",
+                    padding: "2px 4px",
                     position: "relative",
                     overflow: "hidden",
                     whiteSpace: "nowrap",
@@ -126,6 +130,11 @@ export const PayoutTable = ({
                       zIndex: 2,
                       backgroundColor: "inherit",
                       paddingRight: "4px",
+                      WebkitTextStroke:
+                        currentHand === entry.hand && currentHand !== ""
+                          ? "0.5px #ffd700"
+                          : "0.5px #ff6600",
+                      textShadow: "1px 1px 2px rgba(0, 0, 0, 0.8)",
                     }}
                   >
                     {entry.hand}

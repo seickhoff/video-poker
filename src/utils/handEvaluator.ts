@@ -17,6 +17,8 @@ interface HandAnalysis {
   isFourFaces: boolean;
   isJacksOrBetter: boolean;
   isKingsOrBetter: boolean;
+  fourKindRank: string | null;
+  kickerRank: string | null;
   jokerCount: number;
 }
 
@@ -98,6 +100,8 @@ function analyzeHand(hand: Card[], gameType: GameType): HandAnalysis {
   let isFourAces = false;
   let isFourFaces = false;
   let isFourDeuces = false;
+  let fourKindRank: string | null = null;
+  let kickerRank: string | null = null;
 
   for (const rank of Object.keys(rankCounts)) {
     const count = rankCounts[rank] + jokerCount;
@@ -120,6 +124,10 @@ function analyzeHand(hand: Card[], gameType: GameType): HandAnalysis {
 
     if (count === 4) {
       isFourKind = true;
+      fourKindRank = rank;
+      // Find the kicker (the one card that's not part of the quad)
+      const kickerRanks = Object.keys(rankCounts).filter((r) => r !== rank);
+      kickerRank = kickerRanks.length > 0 ? kickerRanks[0] : null;
       if (rank === "A") isFourAces = true;
       if (["K", "Q", "J"].includes(rank)) isFourFaces = true;
     }
@@ -148,6 +156,8 @@ function analyzeHand(hand: Card[], gameType: GameType): HandAnalysis {
     isFourFaces,
     isJacksOrBetter,
     isKingsOrBetter,
+    fourKindRank,
+    kickerRank,
     jokerCount,
   };
 }
@@ -270,6 +280,241 @@ export function evaluateHand(
       } else if (analysis.isTwoPair) {
         handType = "Two Pair";
         payout = 2 * wager;
+      } else if (analysis.isPair && analysis.isJacksOrBetter) {
+        handType = "Jacks or Better";
+        payout = 1 * wager;
+      }
+      break;
+
+    case "Bonus Poker":
+      if (
+        analysis.isRoyal &&
+        analysis.isFlush &&
+        analysis.isStraight &&
+        analysis.isNaturalRoyal
+      ) {
+        handType = "Royal Flush";
+        payout = wager === 5 ? 4000 : 250 * wager;
+      } else if (analysis.isStraight && analysis.isFlush) {
+        handType = "Straight Flush";
+        payout = 50 * wager;
+      } else if (analysis.isFourKind && analysis.fourKindRank === "A") {
+        handType = "Four Aces";
+        payout = 80 * wager;
+      } else if (
+        analysis.isFourKind &&
+        ["2", "3", "4"].includes(analysis.fourKindRank || "")
+      ) {
+        handType = "Four 2-4";
+        payout = 40 * wager;
+      } else if (analysis.isFourKind) {
+        handType = "Four 5-K";
+        payout = 25 * wager;
+      } else if (analysis.isFullHouse) {
+        handType = "Full House";
+        payout = 8 * wager;
+      } else if (analysis.isFlush) {
+        handType = "Flush";
+        payout = 5 * wager;
+      } else if (analysis.isStraight) {
+        handType = "Straight";
+        payout = 4 * wager;
+      } else if (analysis.isThreeKind) {
+        handType = "Three of a Kind";
+        payout = 3 * wager;
+      } else if (analysis.isTwoPair) {
+        handType = "Two Pair";
+        payout = 2 * wager;
+      } else if (analysis.isPair && analysis.isJacksOrBetter) {
+        handType = "Jacks or Better";
+        payout = 1 * wager;
+      }
+      break;
+
+    case "Double Bonus":
+      if (
+        analysis.isRoyal &&
+        analysis.isFlush &&
+        analysis.isStraight &&
+        analysis.isNaturalRoyal
+      ) {
+        handType = "Royal Flush";
+        payout = wager === 5 ? 4000 : 250 * wager;
+      } else if (analysis.isStraight && analysis.isFlush) {
+        handType = "Straight Flush";
+        payout = 50 * wager;
+      } else if (
+        analysis.isFourKind &&
+        analysis.fourKindRank === "A" &&
+        analysis.kickerRank &&
+        ["2", "3", "4"].includes(analysis.kickerRank)
+      ) {
+        handType = "4 Aces w/ 2,3,4";
+        payout = [400, 800, 1200, 1600, 2000][wager - 1];
+      } else if (analysis.isFourKind && analysis.fourKindRank === "A") {
+        handType = "4 Aces";
+        payout = 160 * wager;
+      } else if (
+        analysis.isFourKind &&
+        ["2", "3", "4"].includes(analysis.fourKindRank || "") &&
+        analysis.kickerRank &&
+        ["A", "2", "3", "4"].includes(analysis.kickerRank)
+      ) {
+        handType = "4 2s-4s w/ A,2,3,4";
+        payout = [80, 160, 240, 320, 400][wager - 1];
+      } else if (
+        analysis.isFourKind &&
+        ["2", "3", "4"].includes(analysis.fourKindRank || "")
+      ) {
+        handType = "4 2s-4s";
+        payout = 40 * wager;
+      } else if (analysis.isFourKind) {
+        handType = "4 5s-Ks";
+        payout = 25 * wager;
+      } else if (analysis.isFullHouse) {
+        handType = "Full House";
+        payout = 10 * wager;
+      } else if (analysis.isFlush) {
+        handType = "Flush";
+        payout = 7 * wager;
+      } else if (analysis.isStraight) {
+        handType = "Straight";
+        payout = 5 * wager;
+      } else if (analysis.isThreeKind) {
+        handType = "Three of a Kind";
+        payout = 3 * wager;
+      } else if (analysis.isTwoPair) {
+        handType = "Two Pair";
+        payout = 1 * wager;
+      } else if (analysis.isPair && analysis.isJacksOrBetter) {
+        handType = "Jacks or Better";
+        payout = 1 * wager;
+      }
+      break;
+
+    case "Double Double Bonus":
+      if (
+        analysis.isRoyal &&
+        analysis.isFlush &&
+        analysis.isStraight &&
+        analysis.isNaturalRoyal
+      ) {
+        handType = "Royal Flush";
+        payout = wager === 5 ? 4000 : 250 * wager;
+      } else if (analysis.isStraight && analysis.isFlush) {
+        handType = "Straight Flush";
+        payout = 50 * wager;
+      } else if (
+        analysis.isFourKind &&
+        analysis.fourKindRank === "A" &&
+        analysis.kickerRank &&
+        ["2", "3", "4"].includes(analysis.kickerRank)
+      ) {
+        handType = "Four Aces w/ Kicker";
+        payout = [400, 800, 1200, 1600, 2000][wager - 1];
+      } else if (analysis.isFourKind && analysis.fourKindRank === "A") {
+        handType = "Four Aces";
+        payout = 160 * wager;
+      } else if (
+        analysis.isFourKind &&
+        ["2", "3", "4"].includes(analysis.fourKindRank || "") &&
+        analysis.kickerRank &&
+        ["2", "3", "4"].includes(analysis.kickerRank)
+      ) {
+        handType = "Four 2s-4s w/ Kicker";
+        payout = [80, 160, 240, 320, 400][wager - 1];
+      } else if (
+        analysis.isFourKind &&
+        ["2", "3", "4"].includes(analysis.fourKindRank || "")
+      ) {
+        handType = "Four 2s-4s";
+        payout = 40 * wager;
+      } else if (analysis.isFourKind) {
+        handType = "Four 5s-Kings";
+        payout = 50 * wager;
+      } else if (analysis.isFullHouse) {
+        handType = "Full House";
+        payout = 9 * wager;
+      } else if (analysis.isFlush) {
+        handType = "Flush";
+        payout = 6 * wager;
+      } else if (analysis.isStraight) {
+        handType = "Straight";
+        payout = 4 * wager;
+      } else if (analysis.isThreeKind) {
+        handType = "Three of a Kind";
+        payout = 3 * wager;
+      } else if (analysis.isTwoPair) {
+        handType = "Two Pair";
+        payout = 1 * wager;
+      } else if (analysis.isPair && analysis.isJacksOrBetter) {
+        handType = "Jacks or Better";
+        payout = 1 * wager;
+      }
+      break;
+
+    case "Triple Double Bonus":
+      if (
+        analysis.isRoyal &&
+        analysis.isFlush &&
+        analysis.isStraight &&
+        analysis.isNaturalRoyal
+      ) {
+        handType = "Royal Flush";
+        payout = wager === 5 ? 4000 : 250 * wager;
+      } else if (analysis.isStraight && analysis.isFlush) {
+        handType = "Straight Flush";
+        payout = 50 * wager;
+      } else if (
+        analysis.isFourKind &&
+        analysis.fourKindRank === "A" &&
+        analysis.kickerRank &&
+        ["2", "3", "4"].includes(analysis.kickerRank)
+      ) {
+        handType = "4 Aces w/ 2,3,4";
+        payout = [800, 1600, 2400, 3200, 4000][wager - 1];
+      } else if (analysis.isFourKind && analysis.fourKindRank === "A") {
+        handType = "4 Aces";
+        payout = 160 * wager;
+      } else if (
+        analysis.isFourKind &&
+        ["2", "3", "4"].includes(analysis.fourKindRank || "") &&
+        analysis.kickerRank &&
+        ["A", "2", "3", "4"].includes(analysis.kickerRank)
+      ) {
+        handType = "4 2s-4s w/ A,2,3,4";
+        payout = [400, 800, 1200, 1600, 2000][wager - 1];
+      } else if (
+        analysis.isFourKind &&
+        ["2", "3", "4"].includes(analysis.fourKindRank || "")
+      ) {
+        handType = "4 2s-4s";
+        payout = 80 * wager;
+      } else if (
+        analysis.isFourKind &&
+        analysis.kickerRank &&
+        ["A", "2", "3", "4"].includes(analysis.kickerRank)
+      ) {
+        handType = "4 5s-Ks w/ A,2,3,4";
+        payout = [250, 500, 750, 1000, 1250][wager - 1];
+      } else if (analysis.isFourKind) {
+        handType = "4 5s-Ks";
+        payout = 50 * wager;
+      } else if (analysis.isFullHouse) {
+        handType = "Full House";
+        payout = 9 * wager;
+      } else if (analysis.isFlush) {
+        handType = "Flush";
+        payout = 7 * wager;
+      } else if (analysis.isStraight) {
+        handType = "Straight";
+        payout = 5 * wager;
+      } else if (analysis.isThreeKind) {
+        handType = "Three of a Kind";
+        payout = 3 * wager;
+      } else if (analysis.isTwoPair) {
+        handType = "Two Pair";
+        payout = 1 * wager;
       } else if (analysis.isPair && analysis.isJacksOrBetter) {
         handType = "Jacks or Better";
         payout = 1 * wager;

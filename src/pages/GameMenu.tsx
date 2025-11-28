@@ -127,12 +127,20 @@ export const GameMenu = () => {
                         }}
                       >
                         <option value="Aces and Faces">Aces and Faces</option>
+                        <option value="Bonus Poker">Bonus Poker</option>
                         <option value="Deuces Wild">Deuces Wild</option>
+                        <option value="Double Bonus">Double Bonus</option>
+                        <option value="Double Double Bonus">
+                          Double Double Bonus
+                        </option>
                         <option value="Double Joker Poker">
                           Double Joker Poker
                         </option>
                         <option value="Jacks or Better">Jacks or Better</option>
                         <option value="Joker Wild">Joker Wild</option>
+                        <option value="Triple Double Bonus">
+                          Triple Double Bonus
+                        </option>
                       </Form.Select>
                     </Form.Group>
 

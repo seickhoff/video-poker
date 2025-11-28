@@ -18,6 +18,10 @@ export type Card = `${Rank}${Suit}` | "O1" | "O2";
 export type GameType =
   | "Jacks or Better"
   | "Aces and Faces"
+  | "Bonus Poker"
+  | "Double Bonus"
+  | "Double Double Bonus"
+  | "Triple Double Bonus"
   | "Deuces Wild"
   | "Joker Wild"
   | "Double Joker Poker";
@@ -39,6 +43,18 @@ export type HandType =
   | "Wild Royal Flush"
   | "Four Deuces"
   | "Four Aces"
+  | "Four Aces w/ Kicker"
+  | "4 Aces w/ 2,3,4"
+  | "4 Aces"
+  | "Four 2s-4s"
+  | "Four 2s-4s w/ Kicker"
+  | "4 2s-4s w/ A,2,3,4"
+  | "4 2s-4s"
+  | "Four 5s-Kings"
+  | "4 5s-Ks w/ A,2,3,4"
+  | "4 5s-Ks"
+  | "Four 2-4"
+  | "Four 5-K"
   | "Four Jacks, Queens, or Kings"
   | "";
 

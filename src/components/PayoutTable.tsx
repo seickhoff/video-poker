@@ -17,6 +17,12 @@ export const PayoutTable = ({
 }: PayoutTableProps) => {
   const config = gameConfigs[gameType];
 
+  // Sort payout table by selected bet column (wager), high to low
+  const sortedPayoutTable = [...config.payoutTable].sort((a, b) => {
+    const betIndex = wager - 1;
+    return b.payouts[betIndex] - a.payouts[betIndex];
+  });
+
   const getRowStyle = (handType: HandType) => {
     if (currentHand === handType && currentHand !== HandType.None) {
       return {
@@ -113,7 +119,7 @@ export const PayoutTable = ({
           }}
         >
           <tbody>
-            {config.payoutTable.map((entry) => (
+            {sortedPayoutTable.map((entry) => (
               <tr key={entry.hand} style={getRowStyle(entry.hand)}>
                 <td
                   className="text-start"

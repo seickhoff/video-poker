@@ -6,6 +6,23 @@ export interface HandRule {
   condition: (analysis: HandAnalysis) => boolean;
 }
 
+// Helper function to find a rule by HandType
+const findRule = (rules: HandRule[], handType: HandType): HandRule => {
+  const rule = rules.find((r) => r.handType === handType);
+  if (!rule) {
+    throw new Error(`Rule not found for HandType: ${handType}`);
+  }
+  return rule;
+};
+
+// Helper function to filter rules by HandTypes
+const getRulesByTypes = (
+  rules: HandRule[],
+  handTypes: HandType[]
+): HandRule[] => {
+  return handTypes.map((ht) => findRule(rules, ht));
+};
+
 // Common hand rules used across most/all game types
 export const COMMON_HAND_RULES: HandRule[] = [
   {
@@ -54,12 +71,12 @@ export const JACKS_OR_BETTER_RULES: HandRule[] = [
 
 // Aces and Faces specific rules (adds FOUR ACES and Four JQK before standard FOUR OF A KIND)
 export const ACES_AND_FACES_RULES: HandRule[] = [
-  COMMON_HAND_RULES[0], // ROYAL FLUSH
+  findRule(COMMON_HAND_RULES, HandType.RoyalFlush),
   {
     handType: HandType.FourAces,
     condition: (a) => a.isFourKind && a.fourKindRank === "A",
   },
-  COMMON_HAND_RULES[1], // STRAIGHT FLUSH
+  findRule(COMMON_HAND_RULES, HandType.StraightFlush),
   {
     handType: HandType.FourJQK,
     condition: (a) =>
@@ -69,7 +86,13 @@ export const ACES_AND_FACES_RULES: HandRule[] = [
     handType: HandType.FourOfAKind,
     condition: (a) => a.isFourKind, // Catch-all for other four of a kinds
   },
-  ...COMMON_HAND_RULES.slice(3), // FULL HOUSE onwards
+  ...getRulesByTypes(COMMON_HAND_RULES, [
+    HandType.FullHouse,
+    HandType.Flush,
+    HandType.Straight,
+    HandType.ThreeOfAKind,
+    HandType.TwoPair,
+  ]),
   {
     handType: HandType.JacksOrBetter,
     condition: (a) => a.isPair && a.isJacksOrBetter,
@@ -78,8 +101,8 @@ export const ACES_AND_FACES_RULES: HandRule[] = [
 
 // Bonus Poker specific rules
 export const BONUS_POKER_RULES: HandRule[] = [
-  COMMON_HAND_RULES[0], // ROYAL FLUSH
-  COMMON_HAND_RULES[1], // STRAIGHT FLUSH
+  findRule(COMMON_HAND_RULES, HandType.RoyalFlush),
+  findRule(COMMON_HAND_RULES, HandType.StraightFlush),
   {
     handType: HandType.FourAces,
     condition: (a) => a.isFourKind && a.fourKindRank === "A",
@@ -93,7 +116,13 @@ export const BONUS_POKER_RULES: HandRule[] = [
     handType: HandType.Four5sKings,
     condition: (a) => a.isFourKind, // Catch-all
   },
-  ...COMMON_HAND_RULES.slice(3), // FULL HOUSE onwards
+  ...getRulesByTypes(COMMON_HAND_RULES, [
+    HandType.FullHouse,
+    HandType.Flush,
+    HandType.Straight,
+    HandType.ThreeOfAKind,
+    HandType.TwoPair,
+  ]),
   {
     handType: HandType.JacksOrBetter,
     condition: (a) => a.isPair && a.isJacksOrBetter,
@@ -102,7 +131,7 @@ export const BONUS_POKER_RULES: HandRule[] = [
 
 // Wild card game rules
 export const JOKER_WILD_RULES: HandRule[] = [
-  COMMON_HAND_RULES[0], // ROYAL FLUSH
+  findRule(COMMON_HAND_RULES, HandType.RoyalFlush),
   {
     handType: HandType.FiveOfAKind,
     condition: (a) => a.isFiveKind,
@@ -112,7 +141,14 @@ export const JOKER_WILD_RULES: HandRule[] = [
     condition: (a) =>
       a.isRoyal && a.isFlush && a.isStraight && !a.isNaturalRoyal,
   },
-  ...COMMON_HAND_RULES.slice(1, 7), // STRAIGHT FLUSH through THREE OF A KIND
+  ...getRulesByTypes(COMMON_HAND_RULES, [
+    HandType.StraightFlush,
+    HandType.FourOfAKind,
+    HandType.FullHouse,
+    HandType.Flush,
+    HandType.Straight,
+    HandType.ThreeOfAKind,
+  ]),
   {
     handType: HandType.TwoPair,
     condition: (a) => a.isTwoPair,
@@ -134,7 +170,7 @@ export const PICK_A_PAIR_RULES: HandRule[] = [
 
 // Deuces Wild rules
 export const DEUCES_WILD_RULES: HandRule[] = [
-  COMMON_HAND_RULES[0], // ROYAL FLUSH
+  findRule(COMMON_HAND_RULES, HandType.RoyalFlush),
   {
     handType: HandType.FourDeuces,
     condition: (a) => a.isFourDeuces,
@@ -148,5 +184,13 @@ export const DEUCES_WILD_RULES: HandRule[] = [
     handType: HandType.FiveOfAKind,
     condition: (a) => a.isFiveKind,
   },
-  ...COMMON_HAND_RULES.slice(1), // STRAIGHT FLUSH onwards
+  ...getRulesByTypes(COMMON_HAND_RULES, [
+    HandType.StraightFlush,
+    HandType.FourOfAKind,
+    HandType.FullHouse,
+    HandType.Flush,
+    HandType.Straight,
+    HandType.ThreeOfAKind,
+    HandType.TwoPair,
+  ]),
 ];

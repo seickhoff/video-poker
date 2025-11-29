@@ -44,8 +44,8 @@ export const gameConfigs = {
       "Jacks or Better with bonus payouts for 4-of-a-kind hands. Full-pay return: 99.17%",
     payoutTable: [
       { hand: HandType.RoyalFlush, payouts: [250, 500, 750, 1000, 4000] },
-      { hand: HandType.StraightFlush, payouts: [50, 100, 150, 200, 250] },
       { hand: HandType.FourAces, payouts: [80, 160, 240, 320, 400] },
+      { hand: HandType.StraightFlush, payouts: [50, 100, 150, 200, 250] },
       { hand: HandType.Four2s4s, payouts: [40, 80, 120, 160, 200] },
       { hand: HandType.Four5sKings, payouts: [25, 50, 75, 100, 125] },
       { hand: HandType.FullHouse, payouts: [8, 16, 24, 32, 40] },
@@ -63,10 +63,10 @@ export const gameConfigs = {
       "Classic Double Bonus Poker with enhanced 4-of-a-kind payouts and kicker rules. Full-pay version (10/7) returns 100.17%.",
     payoutTable: [
       { hand: HandType.RoyalFlush, payouts: [250, 500, 750, 1000, 4000] },
-      { hand: HandType.StraightFlush, payouts: [50, 100, 150, 200, 250] },
       { hand: HandType.FourAcesWith234, payouts: [400, 800, 1200, 1600, 2000] },
       { hand: HandType.FourAces, payouts: [160, 320, 480, 640, 800] },
       { hand: HandType.Four2s4sWithA234, payouts: [80, 160, 240, 320, 400] },
+      { hand: HandType.StraightFlush, payouts: [50, 100, 150, 200, 250] },
       { hand: HandType.Four2s4s, payouts: [40, 80, 120, 160, 200] },
       { hand: HandType.Four5sKings, payouts: [25, 50, 75, 100, 125] },
       { hand: HandType.FullHouse, payouts: [10, 20, 30, 40, 50] },
@@ -84,15 +84,15 @@ export const gameConfigs = {
       "Bonus Poker variant with large kicker-based payouts for FOUR ACES, 2-4s, and 5-Ks. Long-term payout: 98.98% (9/6).",
     payoutTable: [
       { hand: HandType.RoyalFlush, payouts: [250, 500, 750, 1000, 4000] },
-      { hand: HandType.StraightFlush, payouts: [50, 100, 150, 200, 250] },
       {
         hand: HandType.FourAcesWith234,
         payouts: [400, 800, 1200, 1600, 2000],
       },
       { hand: HandType.FourAces, payouts: [160, 320, 480, 640, 800] },
       { hand: HandType.Four2s4sWithA234, payouts: [80, 160, 240, 320, 400] },
-      { hand: HandType.Four2s4s, payouts: [40, 80, 120, 160, 200] },
       { hand: HandType.Four5sKings, payouts: [50, 100, 150, 200, 250] },
+      { hand: HandType.StraightFlush, payouts: [50, 100, 150, 200, 250] },
+      { hand: HandType.Four2s4s, payouts: [40, 80, 120, 160, 200] },
       { hand: HandType.FullHouse, payouts: [9, 18, 27, 36, 45] },
       { hand: HandType.Flush, payouts: [6, 12, 18, 24, 30] },
       { hand: HandType.Straight, payouts: [4, 8, 12, 16, 20] },
@@ -107,18 +107,18 @@ export const gameConfigs = {
     description:
       "High-volatility variant with huge 4-of-a-kind bonuses. Full-pay 9/7 returns 99.58%.",
     payoutTable: [
-      { hand: HandType.RoyalFlush, payouts: [250, 500, 750, 1000, 4000] },
-      { hand: HandType.StraightFlush, payouts: [50, 100, 150, 200, 250] },
       {
         hand: HandType.FourAcesWith234,
         payouts: [800, 1600, 2400, 3200, 4000],
       },
-      { hand: HandType.FourAces, payouts: [160, 320, 480, 640, 800] },
+      { hand: HandType.RoyalFlush, payouts: [250, 500, 750, 1000, 4000] },
       {
         hand: HandType.Four2s4sWithA234,
         payouts: [400, 800, 1200, 1600, 2000],
       },
+      { hand: HandType.FourAces, payouts: [160, 320, 480, 640, 800] },
       { hand: HandType.Four2s4s, payouts: [80, 160, 240, 320, 400] },
+      { hand: HandType.StraightFlush, payouts: [50, 100, 150, 200, 250] },
       { hand: HandType.Four5sKings, payouts: [50, 100, 150, 200, 250] },
       { hand: HandType.FullHouse, payouts: [9, 18, 27, 36, 45] },
       { hand: HandType.Flush, payouts: [7, 14, 21, 28, 35] },

@@ -534,7 +534,6 @@ export function evaluateHand(
       }
       break;
 
-
     case GameType.JokerWild:
       if (
         analysis.isRoyal &&

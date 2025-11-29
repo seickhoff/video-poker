@@ -673,22 +673,41 @@ export const VideoPokerGame = () => {
                       whiteSpace: "nowrap",
                     }}
                   >
-                    Main Menu
+                    MENU
                   </Button>
+                  {payout > 0 && (
+                    <Button
+                      size="lg"
+                      onClick={handleDoubleDown}
+                      style={{
+                        backgroundColor: "#ff6600",
+                        color: "#ffffff",
+                        border: "3px solid #ffd700",
+                        fontWeight: "bold",
+                        fontSize: "clamp(0.7rem, 1.8vw, 1.1rem)",
+                        padding: "clamp(4px, 1vw, 8px) clamp(6px, 1.5vw, 16px)",
+                        boxShadow: "0 4px 6px rgba(0, 0, 0, 0.5)",
+                        fontFamily: "monospace",
+                        minWidth: "clamp(70px, 18vw, 120px)",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      DOUBLE DOWN
+                    </Button>
+                  )}
                   <Button
-                    variant=""
                     size="lg"
                     onClick={handleContinue}
                     style={{
-                      backgroundColor: "#ffd700",
+                      backgroundColor: "#00ff00",
                       color: "#000000",
-                      border: "3px solid #ffff00",
+                      border: "3px solid #00cc00",
                       fontWeight: "bold",
                       fontSize: "clamp(0.7rem, 1.8vw, 1.1rem)",
                       padding: "clamp(4px, 1vw, 8px) clamp(6px, 1.5vw, 16px)",
                       boxShadow: "0 4px 6px rgba(0, 0, 0, 0.5)",
                       fontFamily: "monospace",
-                      minWidth: "clamp(60px, 15vw, 120px)",
+                      minWidth: "clamp(70px, 18vw, 120px)",
                       whiteSpace: "nowrap",
                     }}
                   >
@@ -698,7 +717,7 @@ export const VideoPokerGame = () => {
               </Row>
               {/* Desktop: Single Row */}
               <Row className="mb-3 d-none d-md-flex">
-                <Col md={3} className="d-flex align-items-center gap-3">
+                <Col md={3} className="d-flex align-items-center">
                   <Button
                     variant=""
                     size="lg"
@@ -712,25 +731,44 @@ export const VideoPokerGame = () => {
                       padding: "clamp(4px, 1vw, 8px) clamp(8px, 2vw, 16px)",
                       boxShadow: "0 4px 6px rgba(0, 0, 0, 0.5)",
                       fontFamily: "monospace",
-                      minWidth: "clamp(80px, 20vw, 150px)",
+                      minWidth: "clamp(60px, 15vw, 150px)",
                       whiteSpace: "nowrap",
                     }}
                   >
-                    Main Menu
+                    MENU
                   </Button>
                 </Col>
                 <Col
                   md={6}
-                  className="d-flex align-items-center justify-content-center"
+                  className="d-flex align-items-center justify-content-center gap-3"
                 >
+                  {payout > 0 && (
+                    <Button
+                      size="lg"
+                      onClick={handleDoubleDown}
+                      style={{
+                        backgroundColor: "#ff6600",
+                        color: "#ffffff",
+                        border: "3px solid #ffd700",
+                        fontWeight: "bold",
+                        fontSize: "clamp(0.7rem, 1.8vw, 1.1rem)",
+                        padding: "clamp(4px, 1vw, 8px) clamp(6px, 1.5vw, 16px)",
+                        boxShadow: "0 4px 6px rgba(0, 0, 0, 0.5)",
+                        fontFamily: "monospace",
+                        minWidth: "clamp(70px, 18vw, 150px)",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      DOUBLE DOWN
+                    </Button>
+                  )}
                   <Button
-                    variant=""
                     size="lg"
                     onClick={handleContinue}
                     style={{
-                      backgroundColor: "#ffd700",
+                      backgroundColor: "#00ff00",
                       color: "#000000",
-                      border: "3px solid #ffff00",
+                      border: "3px solid #00cc00",
                       fontWeight: "bold",
                       fontSize: "clamp(0.8rem, 2vw, 1.1rem)",
                       padding: "clamp(4px, 1vw, 8px) clamp(8px, 2vw, 16px)",
@@ -932,6 +970,10 @@ export const VideoPokerGame = () => {
                 {sequence === "d" &&
                   "Click a card to try to beat the dealer's card on the left."}
                 {sequence === "e" &&
+                  payout > 0 &&
+                  "You won! Click CONTINUE to play again or DOUBLE DOWN to risk it."}
+                {sequence === "e" &&
+                  payout === 0 &&
                   "Click CONTINUE to play again or click MENU to select a new game."}
               </p>
             </div>

@@ -2,7 +2,7 @@ import { Card, GameType, HandEvaluation, HandType } from "../types/game";
 import { getCardValue, getCardRank, getCardSuit } from "./deck";
 import { getGameConfig } from "./gameConfigs";
 
-interface HandAnalysis {
+export interface HandAnalysis {
   isFlush: boolean;
   isStraight: boolean;
   isRoyal: boolean;

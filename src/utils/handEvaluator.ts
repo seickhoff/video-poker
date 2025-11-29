@@ -1,5 +1,6 @@
 import { Card, GameType, HandEvaluation, HandType } from "../types/game";
 import { getCardValue, getCardRank, getCardSuit } from "./deck";
+import { getGameConfig } from "./gameConfigs";
 
 interface HandAnalysis {
   isFlush: boolean;
@@ -17,6 +18,7 @@ interface HandAnalysis {
   isFourFaces: boolean;
   isJacksOrBetter: boolean;
   isKingsOrBetter: boolean;
+  isNinesOrBetter: boolean;
   fourKindRank: string | null;
   kickerRank: string | null;
   jokerCount: number;
@@ -97,6 +99,7 @@ function analyzeHand(hand: Card[], gameType: GameType): HandAnalysis {
   let isFullHouse = false;
   let isJacksOrBetter = false;
   let isKingsOrBetter = false;
+  let isNinesOrBetter = false;
   let isFourAces = false;
   let isFourFaces = false;
   let isFourDeuces = false;
@@ -110,6 +113,8 @@ function analyzeHand(hand: Card[], gameType: GameType): HandAnalysis {
       isPair = true;
       if (["A", "K", "Q", "J"].includes(rank)) isJacksOrBetter = true;
       if (["A", "K"].includes(rank)) isKingsOrBetter = true;
+      if (["A", "K", "Q", "J", "10", "9"].includes(rank))
+        isNinesOrBetter = true;
     }
 
     if (count === 2 && uniqueRanks === 3) {
@@ -156,6 +161,7 @@ function analyzeHand(hand: Card[], gameType: GameType): HandAnalysis {
     isFourFaces,
     isJacksOrBetter,
     isKingsOrBetter,
+    isNinesOrBetter,
     fourKindRank,
     kickerRank,
     jokerCount,
@@ -195,6 +201,20 @@ function checkStraight(values: number[], jokerCount: number): boolean {
   }
 
   return false;
+}
+
+// Helper function to get payout from game config
+function getPayoutFromConfig(
+  gameType: GameType,
+  handType: HandType,
+  wager: number
+): number {
+  const config = getGameConfig(gameType);
+  const payoutEntry = config.payoutTable.find(
+    (entry) => entry.hand === handType
+  );
+  if (!payoutEntry) return 0;
+  return payoutEntry.payouts[wager - 1];
 }
 
 export function evaluateHand(
@@ -638,6 +658,38 @@ export function evaluateHand(
       } else if (analysis.isThreeKind) {
         handType = "Three of a Kind";
         payout = 1 * wager;
+      }
+      break;
+
+    case "Pick-a-Pair Poker":
+      if (
+        analysis.isRoyal &&
+        analysis.isFlush &&
+        analysis.isStraight &&
+        analysis.isNaturalRoyal
+      ) {
+        handType = "Royal Flush";
+      } else if (analysis.isStraight && analysis.isFlush) {
+        handType = "Straight Flush";
+      } else if (analysis.isFourKind) {
+        handType = "Four of a Kind";
+      } else if (analysis.isFullHouse) {
+        handType = "Full House";
+      } else if (analysis.isFlush) {
+        handType = "Flush";
+      } else if (analysis.isStraight) {
+        handType = "Straight";
+      } else if (analysis.isThreeKind) {
+        handType = "Three of a Kind";
+      } else if (analysis.isTwoPair) {
+        handType = "Two Pair";
+      } else if (analysis.isPair && analysis.isNinesOrBetter) {
+        handType = "Nines or Better";
+      }
+
+      // Get payout from config
+      if (handType) {
+        payout = getPayoutFromConfig(gameType, handType, wager);
       }
       break;
   }

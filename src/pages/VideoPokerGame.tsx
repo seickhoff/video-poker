@@ -56,7 +56,7 @@ export const VideoPokerGame = () => {
 
   const getButtonText = (): string => {
     if (sequence === 0) return "Show Cards";
-    if (sequence === 1) return "Draw Cards";
+    if (sequence === 1) return "DRAW";
     if (sequence === "d") return "Show Card";
     return "";
   };
@@ -106,7 +106,11 @@ export const VideoPokerGame = () => {
                 {sequence === 0 &&
                   "Select your bet amount, then click Show Cards."}
                 {sequence === 1 &&
-                  "Click cards to hold them, then click Draw Cards."}
+                  gameType !== "Pick-a-Pair Poker" &&
+                  "Click cards to hold them, then click DRAW."}
+                {sequence === 1 &&
+                  gameType === "Pick-a-Pair Poker" &&
+                  "First 2 cards are kept. Choose ONE card from the right pair, then click DRAW."}
                 {sequence === 2 &&
                   payout > 0 &&
                   "You won! Click Continue to play again or Double Down to risk it."}
@@ -299,7 +303,7 @@ export const VideoPokerGame = () => {
             </>
           )}
 
-          {/* Sequence 1: Draw Cards */}
+          {/* Sequence 1: DRAW */}
           {sequence === 1 && (
             <>
               {/* Mobile: Row 1 - BET and CREDIT */}
@@ -334,7 +338,7 @@ export const VideoPokerGame = () => {
                   </div>
                 </Col>
               </Row>
-              {/* Mobile: Row 2 - Draw Cards Button */}
+              {/* Mobile: Row 2 - DRAW Button */}
               <Row className="mb-3 d-md-none">
                 <Col xs={12} className="d-flex justify-content-center">
                   <Button

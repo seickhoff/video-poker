@@ -1,5 +1,6 @@
 import { Card as CardType, GameSequence } from "../types/game";
 import { PlayingCard } from "./PlayingCard";
+import { useVideoPoker } from "../hooks/useVideoPoker";
 
 interface CardHandProps {
   hand: CardType[];
@@ -18,11 +19,44 @@ export const CardHand = ({
   onSelectCard,
   selectedCardIndex = -1,
 }: CardHandProps) => {
+  const { gameType } = useVideoPoker();
+
   const renderCards = () => {
     if (sequence === 0) {
       return Array(5)
         .fill(null)
         .map((_, index) => <PlayingCard key={index} card={null} />);
+    }
+
+    // Pick-a-Pair Poker special rendering during selection (sequence 1)
+    if (gameType === "Pick-a-Pair Poker" && sequence === 1) {
+      return hand.map((card, index) => {
+        // Index 2 is the gap (null)
+        if (index === 2) {
+          return <PlayingCard key={index} card={null} />;
+        }
+        // Indices 0, 1 are auto-held (show HELD label)
+        if (index < 2) {
+          return (
+            <PlayingCard
+              key={index}
+              card={card}
+              isHeld={true}
+              showHold={true}
+            />
+          );
+        }
+        // Indices 3, 4 are selectable
+        return (
+          <PlayingCard
+            key={index}
+            card={card}
+            isHeld={heldCards[index]}
+            onToggleHold={() => onToggleHold(index)}
+            showHold={true}
+          />
+        );
+      });
     }
 
     if (sequence === "d") {

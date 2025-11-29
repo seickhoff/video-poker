@@ -158,11 +158,7 @@ export const PayoutTable = ({
                 <td style={getCellStyle(entry.hand, 1)}>{entry.payouts[1]}</td>
                 <td style={getCellStyle(entry.hand, 2)}>{entry.payouts[2]}</td>
                 <td style={getCellStyle(entry.hand, 3)}>{entry.payouts[3]}</td>
-                <td style={getCellStyle(entry.hand, 4)}>
-                  {entry.hand === "Royal Flush" && wager === 5
-                    ? "4000"
-                    : entry.payouts[4].toString()}
-                </td>
+                <td style={getCellStyle(entry.hand, 4)}>{entry.payouts[4]}</td>
               </tr>
             ))}
           </tbody>

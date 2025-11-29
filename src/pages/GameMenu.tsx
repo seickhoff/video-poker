@@ -138,6 +138,9 @@ export const GameMenu = () => {
                         </option>
                         <option value="Jacks or Better">Jacks or Better</option>
                         <option value="Joker Wild">Joker Wild</option>
+                        <option value="Pick-a-Pair Poker">
+                          Pick-a-Pair Poker
+                        </option>
                         <option value="Triple Double Bonus">
                           Triple Double Bonus
                         </option>

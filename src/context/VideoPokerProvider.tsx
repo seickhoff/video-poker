@@ -1,6 +1,12 @@
 import { useState, ReactNode, useCallback } from "react";
 import { VideoPokerContext } from "./VideoPokerContext";
-import { Card, GameType, GameSequence, HandType } from "../types/game";
+import {
+  Card,
+  GameType as GameTypeEnum,
+  GameSequence,
+  HandType,
+} from "../types/game";
+import type { GameType } from "../types/game";
 import {
   createDeck,
   shuffleDeck,
@@ -57,8 +63,31 @@ export const VideoPokerProvider = ({ children }: { children: ReactNode }) => {
 
     const jokers = getJokerCount(gameType);
     const newDeck = shuffleDeck(createDeck(jokers));
-    const { hand: newHand, remainingDeck } = dealCardsUtil(newDeck, 5);
 
+    // Pick-a-Pair Poker: Deal 4 cards initially, with gap for display
+    if (gameType === "Pick-a-Pair Poker") {
+      const { hand: fourCards, remainingDeck } = dealCardsUtil(newDeck, 4);
+      // Create 5-card array with gap: [card1, card2, gap, card3, card4]
+      const newHand: Card[] = [
+        fourCards[0],
+        fourCards[1],
+        null as any,
+        fourCards[2],
+        fourCards[3],
+      ];
+
+      setHand(newHand);
+      setDeck(remainingDeck);
+      // First 2 cards auto-held, gap is false, last 2 are selectable
+      setHeldCards([true, true, false, false, false]);
+      setCredits((prev) => prev - wager);
+      setSequence(1);
+      setCurrentHand("");
+      return;
+    }
+
+    // Standard games: Deal 5 cards
+    const { hand: newHand, remainingDeck } = dealCardsUtil(newDeck, 5);
     setHand(newHand);
     setDeck(remainingDeck);
     setHeldCards([false, false, false, false, false]);
@@ -69,17 +98,63 @@ export const VideoPokerProvider = ({ children }: { children: ReactNode }) => {
     setCurrentHand(evaluation.handType);
   }, [gameType, wager]);
 
-  const toggleHoldCard = useCallback((index: number) => {
-    setHeldCards((prev) => {
-      const newHeld = [...prev];
-      newHeld[index] = !newHeld[index];
-      return newHeld;
-    });
-  }, []);
+  const toggleHoldCard = useCallback(
+    (index: number) => {
+      // Pick-a-Pair Poker: Select card 3 or 4 (indices 3 or 4)
+      if (gameType === "Pick-a-Pair Poker" && sequence === 1) {
+        if (index === 3 || index === 4) {
+          // Select this card, deselect the other
+          const newHeld = [true, true, false, false, false];
+          newHeld[index] = true;
+          setHeldCards(newHeld);
+        }
+        return;
+      }
+
+      // Standard games: Toggle hold
+      setHeldCards((prev) => {
+        const newHeld = [...prev];
+        newHeld[index] = !newHeld[index];
+        return newHeld;
+      });
+    },
+    [gameType, sequence]
+  );
 
   const drawCards = useCallback(() => {
     if (!gameType) return;
 
+    // Pick-a-Pair Poker: Deal 2 more cards to complete the hand
+    if (gameType === "Pick-a-Pair Poker") {
+      // Find which card was selected (index 3 or 4)
+      const selectedIndex = heldCards[3] ? 3 : 4;
+      const selectedCard = hand[selectedIndex];
+
+      // Deal 2 more cards
+      const { hand: newCards, remainingDeck } = dealCardsUtil(deck, 2);
+
+      // Build final 5-card hand: [card1, card2, selectedCard, newCard1, newCard2]
+      const finalHand: Card[] = [
+        hand[0], // First auto-kept card
+        hand[1], // Second auto-kept card
+        selectedCard, // Player's choice from card 3 or 4
+        newCards[0], // New card 1
+        newCards[1], // New card 2
+      ];
+
+      setHand(finalHand);
+      setDeck(remainingDeck);
+      setSequence(2);
+
+      const evaluation = evaluateHand(finalHand, gameType, wager);
+      setCurrentHand(evaluation.handType);
+      setPayout(evaluation.payout);
+      setOriginalCredits(credits);
+      setCredits((prev) => prev + evaluation.payout);
+      return;
+    }
+
+    // Standard games: Replace unheld cards
     const { newHand, remainingDeck } = replaceCards(hand, deck, heldCards);
     setHand(newHand);
     setDeck(remainingDeck);

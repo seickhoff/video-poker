@@ -2,11 +2,11 @@ import { useState, ReactNode, useCallback } from "react";
 import { VideoPokerContext } from "./VideoPokerContext";
 import {
   Card,
-  GameType as GameTypeEnum,
+  GameType,
+  type GameType as GameTypeType,
   GameSequence,
   HandType,
 } from "../types/game";
-import type { GameType } from "../types/game";
 import {
   createDeck,
   shuffleDeck,
@@ -18,7 +18,7 @@ import { evaluateHand } from "../utils/handEvaluator";
 import { getJokerCount } from "../utils/gameConfigs";
 
 export const VideoPokerProvider = ({ children }: { children: ReactNode }) => {
-  const [gameType, setGameType] = useState<GameType | null>(null);
+  const [gameType, setGameType] = useState<GameTypeType | null>(null);
   const [credits, setCredits] = useState<number>(10);
   const [sequence, setSequence] = useState<GameSequence>(0);
   const [hand, setHand] = useState<Card[]>([]);
@@ -38,7 +38,7 @@ export const VideoPokerProvider = ({ children }: { children: ReactNode }) => {
   const [selectedCardIndex, setSelectedCardIndex] = useState<number>(-1);
 
   const startNewGame = useCallback(
-    (newGameType: GameType, initialCredits: number = 100) => {
+    (newGameType: GameTypeType, initialCredits: number = 100) => {
       setGameType(newGameType);
       setCredits(initialCredits);
       setSequence(0);
@@ -65,7 +65,7 @@ export const VideoPokerProvider = ({ children }: { children: ReactNode }) => {
     const newDeck = shuffleDeck(createDeck(jokers));
 
     // Pick-a-Pair Poker: Deal 4 cards initially, with gap for display
-    if (gameType === "Pick-a-Pair Poker") {
+    if (gameType === GameType.PickAPairPoker) {
       const { hand: fourCards, remainingDeck } = dealCardsUtil(newDeck, 4);
       // Create 5-card array with gap: [card1, card2, gap, card3, card4]
       const newHand: Card[] = [
@@ -101,7 +101,7 @@ export const VideoPokerProvider = ({ children }: { children: ReactNode }) => {
   const toggleHoldCard = useCallback(
     (index: number) => {
       // Pick-a-Pair Poker: Select card 3 or 4 (indices 3 or 4)
-      if (gameType === "Pick-a-Pair Poker" && sequence === 1) {
+      if (gameType === GameType.PickAPairPoker && sequence === 1) {
         if (index === 3 || index === 4) {
           // Select this card, deselect the other
           const newHeld = [true, true, false, false, false];
@@ -125,7 +125,7 @@ export const VideoPokerProvider = ({ children }: { children: ReactNode }) => {
     if (!gameType) return;
 
     // Pick-a-Pair Poker: Deal 2 more cards to complete the hand
-    if (gameType === "Pick-a-Pair Poker") {
+    if (gameType === GameType.PickAPairPoker) {
       // Find which card was selected (index 3 or 4)
       const selectedIndex = heldCards[3] ? 3 : 4;
       const selectedCard = hand[selectedIndex];

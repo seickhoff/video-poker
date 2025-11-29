@@ -6,12 +6,14 @@ interface PayoutTableProps {
   gameType: GameType;
   wager: number;
   currentHand: HandType;
+  onWagerChange?: (wager: number) => void;
 }
 
 export const PayoutTable = ({
   gameType,
   wager,
   currentHand,
+  onWagerChange,
 }: PayoutTableProps) => {
   const config = gameConfigs[gameType];
 
@@ -41,7 +43,8 @@ export const PayoutTable = ({
       backgroundColor: "#000066" as const,
       padding: "2px 4px" as const,
       textAlign: "right" as const,
-      width: "auto" as const,
+      width: "12%" as const,
+      cursor: onWagerChange ? "pointer" : "default",
     };
 
     if (
@@ -66,6 +69,12 @@ export const PayoutTable = ({
     return baseStyle;
   };
 
+  const handleColumnClick = (betIndex: number) => {
+    if (onWagerChange) {
+      onWagerChange(betIndex + 1);
+    }
+  };
+
   return (
     <div>
       <h1
@@ -86,6 +95,8 @@ export const PayoutTable = ({
         style={{
           border: "3px solid #ffd700",
           backgroundColor: "#000066",
+          borderRadius: 6,
+          overflow: "hidden",
         }}
       >
         <Table
@@ -99,6 +110,7 @@ export const PayoutTable = ({
             textTransform: "uppercase",
             fontSize: "clamp(0.7rem, 2.5vw, 1.3rem)",
             fontFamily: "monospace",
+            tableLayout: "fixed",
           }}
         >
           <tbody>
@@ -107,8 +119,7 @@ export const PayoutTable = ({
                 <td
                   className="text-start"
                   style={{
-                    width: "auto",
-                    minWidth: "0",
+                    width: "40%",
                     borderTop: "none",
                     borderBottom: "none",
                     borderLeft: "none",
@@ -154,11 +165,36 @@ export const PayoutTable = ({
                     }
                   </span>
                 </td>
-                <td style={getCellStyle(entry.hand, 0)}>{entry.payouts[0]}</td>
-                <td style={getCellStyle(entry.hand, 1)}>{entry.payouts[1]}</td>
-                <td style={getCellStyle(entry.hand, 2)}>{entry.payouts[2]}</td>
-                <td style={getCellStyle(entry.hand, 3)}>{entry.payouts[3]}</td>
-                <td style={getCellStyle(entry.hand, 4)}>{entry.payouts[4]}</td>
+                <td
+                  style={getCellStyle(entry.hand, 0)}
+                  onClick={() => handleColumnClick(0)}
+                >
+                  {entry.payouts[0]}
+                </td>
+                <td
+                  style={getCellStyle(entry.hand, 1)}
+                  onClick={() => handleColumnClick(1)}
+                >
+                  {entry.payouts[1]}
+                </td>
+                <td
+                  style={getCellStyle(entry.hand, 2)}
+                  onClick={() => handleColumnClick(2)}
+                >
+                  {entry.payouts[2]}
+                </td>
+                <td
+                  style={getCellStyle(entry.hand, 3)}
+                  onClick={() => handleColumnClick(3)}
+                >
+                  {entry.payouts[3]}
+                </td>
+                <td
+                  style={getCellStyle(entry.hand, 4)}
+                  onClick={() => handleColumnClick(4)}
+                >
+                  {entry.payouts[4]}
+                </td>
               </tr>
             ))}
           </tbody>

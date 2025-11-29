@@ -50,6 +50,7 @@ export const VideoPokerProvider = ({ children }: { children: ReactNode }) => {
       setPayout(0);
       setOriginalCredits(0);
       setDoubleDownHand([]);
+      setSelectedCardIndex(-1);
     },
     []
   );
@@ -205,8 +206,8 @@ export const VideoPokerProvider = ({ children }: { children: ReactNode }) => {
         setPayout(0);
       }
 
-      // Move to sequence 2 to show results
-      setSequence(2);
+      // Move to sequence "e" to show double down results
+      setSequence("e");
     },
     [doubleDownHand, payout, originalCredits]
   );

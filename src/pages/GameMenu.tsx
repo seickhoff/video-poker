@@ -1,22 +1,22 @@
-import { Container, Form, Button, Card, Row, Col } from "react-bootstrap";
+import { Container, Card, Row, Col } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
 import { useVideoPoker } from "../hooks/useVideoPoker";
 import { GameType } from "../types/game";
 import { gameConfigs } from "../utils/gameConfigs";
 
 export const GameMenu = () => {
   const navigate = useNavigate();
-  const { startNewGame, credits } = useVideoPoker();
-  const [selectedGame, setSelectedGame] = useState<GameType>("Jacks or Better");
-  const [selectedCredits, setSelectedCredits] = useState<number>(
-    credits > 0 ? credits : 100
-  );
+  const { startNewGame } = useVideoPoker();
 
-  const handleStart = () => {
-    startNewGame(selectedGame, selectedCredits);
+  const handleGameSelect = (gameType: GameType) => {
+    startNewGame(gameType, 100);
     navigate("/play");
   };
+
+  // Sort games alphabetically
+  const sortedGames = Object.values(gameConfigs).sort((a, b) =>
+    a.name.localeCompare(b.name)
+  );
 
   return (
     <Container
@@ -52,172 +52,84 @@ export const GameMenu = () => {
               fontSize: "clamp(0.9rem, 2.5vw, 1.2rem)",
             }}
           >
-            Welcome to this suite of Video Poker games. New games start with 100
-            credits. The payout tables and game-play accurately emulate casino
-            games.
+            New games start with 100 credits. Make a selection below.
           </p>
 
+          {/* Credit Display Row */}
+          <Row className="mb-4">
+            <Col xs={12} className="text-center">
+              <div
+                style={{
+                  color: "#ff6600",
+                  fontWeight: "bold",
+                  fontFamily: "monospace",
+                  fontSize: "clamp(1.2rem, 3vw, 1.8rem)",
+                  WebkitTextStroke: "clamp(0.5px, 0.15vw, 1px) #ffff00",
+                  textShadow: "2px 2px 4px rgba(0, 0, 0, 0.8)",
+                }}
+              >
+                CREDIT $100
+              </div>
+            </Col>
+          </Row>
+
+          {/* Game Grid */}
           <Row>
-            {/* Left Card - Game Setup */}
-            <Col xs={12} md={6} className="mb-4">
-              <Card
-                style={{
-                  backgroundColor: "#000066",
-                  border: "3px solid #ffd700",
-                  height: "100%",
-                }}
-              >
-                <Card.Body>
-                  <Form>
-                    <Form.Group className="mb-3">
-                      <Form.Label
-                        className="fs-5"
-                        style={{
-                          color: "#ffff00",
-                          fontWeight: "bold",
-                          fontFamily: "monospace",
-                        }}
-                      >
-                        CREDITS
-                      </Form.Label>
-                      <Form.Select
-                        value={selectedCredits}
-                        onChange={(e) =>
-                          setSelectedCredits(Number(e.target.value))
-                        }
-                        style={{
-                          backgroundColor: "#000066",
-                          color: "#ffff00",
-                          border: "2px solid #ffd700",
-                          fontFamily: "monospace",
-                          fontWeight: "bold",
-                        }}
-                      >
-                        {credits > 0 && (
-                          <option value={credits}>{credits}</option>
-                        )}
-                        {credits !== 100 && <option value={100}>100</option>}
-                        <option value={500}>500</option>
-                        <option value={1000}>1000</option>
-                      </Form.Select>
-                    </Form.Group>
-
-                    <Form.Group className="mb-4">
-                      <Form.Label
-                        className="fs-5"
-                        style={{
-                          color: "#ffff00",
-                          fontWeight: "bold",
-                          fontFamily: "monospace",
-                        }}
-                      >
-                        GAME
-                      </Form.Label>
-                      <Form.Select
-                        value={selectedGame}
-                        onChange={(e) =>
-                          setSelectedGame(e.target.value as GameType)
-                        }
-                        style={{
-                          backgroundColor: "#000066",
-                          color: "#ffff00",
-                          border: "2px solid #ffd700",
-                          fontFamily: "monospace",
-                          fontWeight: "bold",
-                        }}
-                      >
-                        <option value="Aces and Faces">Aces and Faces</option>
-                        <option value="Bonus Poker">Bonus Poker</option>
-                        <option value="Deuces Wild">Deuces Wild</option>
-                        <option value="Double Bonus">Double Bonus</option>
-                        <option value="Double Double Bonus">
-                          Double Double Bonus
-                        </option>
-                        <option value="Double Joker Poker">
-                          Double Joker Poker
-                        </option>
-                        <option value="Jacks or Better">Jacks or Better</option>
-                        <option value="Joker Wild">Joker Wild</option>
-                        <option value="Pick-a-Pair Poker">
-                          Pick-a-Pair Poker
-                        </option>
-                        <option value="Triple Double Bonus">
-                          Triple Double Bonus
-                        </option>
-                      </Form.Select>
-                    </Form.Group>
-
-                    <div className="text-center">
-                      <Button
-                        size="lg"
-                        onClick={handleStart}
-                        style={{
-                          backgroundColor: "#ffd700",
-                          color: "#000000",
-                          border: "3px solid #ffff00",
-                          fontWeight: "bold",
-                          fontSize: "1.5rem",
-                          padding: "12px 40px",
-                          boxShadow: "0 4px 8px rgba(0, 0, 0, 0.5)",
-                          fontFamily: "monospace",
-                        }}
-                      >
-                        START GAME
-                      </Button>
-                    </div>
-                  </Form>
-                </Card.Body>
-              </Card>
-            </Col>
-
-            {/* Right Card - Game Descriptions */}
-            <Col xs={12} md={6} className="mb-4">
-              <Card
-                style={{
-                  backgroundColor: "#000066",
-                  border: "3px solid #ffd700",
-                  height: "100%",
-                }}
-              >
-                <Card.Body>
-                  <Card.Text
-                    className="mb-3 fs-5"
-                    style={{
-                      color: "#ffff00",
-                      fontWeight: "bold",
-                      fontFamily: "monospace",
-                    }}
-                  >
-                    GAMES
-                  </Card.Text>
-
-                  {Object.values(gameConfigs).map((config) => (
-                    <div key={config.name} className="mb-3">
-                      <h6
-                        className="text-decoration-underline"
-                        style={{
-                          color: "#ffd700",
-                          fontFamily: "monospace",
-                          fontWeight: "bold",
-                        }}
-                      >
-                        {config.name}
-                      </h6>
-                      <p
-                        className="mb-2"
-                        style={{
-                          fontSize: "0.9rem",
-                          color: "#ffff00",
-                          fontFamily: "monospace",
-                        }}
-                      >
-                        {config.description}
-                      </p>
-                    </div>
-                  ))}
-                </Card.Body>
-              </Card>
-            </Col>
+            {sortedGames.map((config) => (
+              <Col key={config.name} xs={12} md={6} lg={4} className="mb-4">
+                <Card
+                  onClick={() => handleGameSelect(config.name)}
+                  style={{
+                    backgroundColor: "#000066",
+                    border: "3px solid #ffd700",
+                    cursor: "pointer",
+                    transition: "all 0.2s ease",
+                    height: "100%",
+                    borderRadius: 16,
+                  }}
+                  className="h-100"
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = "#0000aa";
+                    e.currentTarget.style.borderColor = "#ffff00";
+                    e.currentTarget.style.transform = "translateY(-4px)";
+                    e.currentTarget.style.boxShadow =
+                      "0 8px 16px rgba(0, 0, 0, 0.6)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "#000066";
+                    e.currentTarget.style.borderColor = "#ffd700";
+                    e.currentTarget.style.transform = "translateY(0)";
+                    e.currentTarget.style.boxShadow = "none";
+                  }}
+                >
+                  <Card.Body className="d-flex flex-column">
+                    <Card.Title
+                      className="text-center mb-3"
+                      style={{
+                        color: "#ff6600",
+                        fontWeight: "bold",
+                        fontFamily: "monospace",
+                        fontSize: "clamp(1rem, 2.5vw, 1.3rem)",
+                        WebkitTextStroke: "clamp(0.5px, 0.15vw, 1px) #ffff00",
+                        textShadow: "2px 2px 4px rgba(0, 0, 0, 0.8)",
+                      }}
+                    >
+                      {config.name}
+                    </Card.Title>
+                    <Card.Text
+                      style={{
+                        color: "#ffff00",
+                        fontFamily: "monospace",
+                        fontSize: "clamp(0.7rem, 1.5vw, 0.85rem)",
+                        lineHeight: "1.4",
+                      }}
+                    >
+                      {config.description}
+                    </Card.Text>
+                  </Card.Body>
+                </Card>
+              </Col>
+            ))}
           </Row>
         </Col>
       </Row>

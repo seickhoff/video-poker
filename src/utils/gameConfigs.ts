@@ -193,7 +193,7 @@ export const gameConfigs = {
     name: GameType.PickAPairPoker,
     jokers: 0,
     description:
-      "A 2+1 variant of video poker. Keep the first 2 cards, choose between the 3rd or 4th card, then complete a 5-card hand. Pays only for hands of Nines or Better and above.",
+      "A 2+1 variant of video poker. Keep the first 2 cards, choose between the 3rd or 4th card, then complete a 5-card hand.",
     payoutTable: [
       { hand: HandType.RoyalFlush, payouts: [200, 400, 600, 800, 10000] },
       { hand: HandType.StraightFlush, payouts: [200, 400, 600, 800, 1000] },

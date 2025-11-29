@@ -31,7 +31,7 @@ export const VideoPokerProvider = ({ children }: { children: ReactNode }) => {
     false,
     false,
   ]);
-  const [currentHand, setCurrentHand] = useState<HandType>("");
+  const [currentHand, setCurrentHand] = useState<HandType>(HandType.None);
   const [payout, setPayout] = useState<number>(0);
   const [originalCredits, setOriginalCredits] = useState<number>(0);
   const [doubleDownHand, setDoubleDownHand] = useState<Card[]>([]);
@@ -46,7 +46,7 @@ export const VideoPokerProvider = ({ children }: { children: ReactNode }) => {
       setDeck([]);
       setWager(5);
       setHeldCards([false, false, false, false, false]);
-      setCurrentHand("");
+      setCurrentHand(HandType.None);
       setPayout(0);
       setOriginalCredits(0);
       setDoubleDownHand([]);
@@ -83,7 +83,7 @@ export const VideoPokerProvider = ({ children }: { children: ReactNode }) => {
       setHeldCards([true, true, false, false, false]);
       setCredits((prev) => prev - wager);
       setSequence(1);
-      setCurrentHand("");
+      setCurrentHand(HandType.None);
       return;
     }
 
@@ -221,7 +221,7 @@ export const VideoPokerProvider = ({ children }: { children: ReactNode }) => {
     setSequence(0);
     setHand([]);
     setHeldCards([false, false, false, false, false]);
-    setCurrentHand("");
+    setCurrentHand(HandType.None);
     setPayout(0);
     setDoubleDownHand([]);
     setSelectedCardIndex(-1);

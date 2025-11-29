@@ -46,8 +46,8 @@ export const gameConfigs = {
       { hand: HandType.RoyalFlush, payouts: [250, 500, 750, 1000, 4000] },
       { hand: HandType.StraightFlush, payouts: [50, 100, 150, 200, 250] },
       { hand: HandType.FourAces, payouts: [80, 160, 240, 320, 400] },
-      { hand: HandType.Four24, payouts: [40, 80, 120, 160, 200] },
-      { hand: HandType.Four5K, payouts: [25, 50, 75, 100, 125] },
+      { hand: HandType.Four2s4s, payouts: [40, 80, 120, 160, 200] },
+      { hand: HandType.Four5sKings, payouts: [25, 50, 75, 100, 125] },
       { hand: HandType.FullHouse, payouts: [8, 16, 24, 32, 40] },
       { hand: HandType.Flush, payouts: [5, 10, 15, 20, 25] },
       { hand: HandType.Straight, payouts: [4, 8, 12, 16, 20] },
@@ -65,10 +65,10 @@ export const gameConfigs = {
       { hand: HandType.RoyalFlush, payouts: [250, 500, 750, 1000, 4000] },
       { hand: HandType.StraightFlush, payouts: [50, 100, 150, 200, 250] },
       { hand: HandType.FourAcesWith234, payouts: [400, 800, 1200, 1600, 2000] },
-      { hand: HandType.FourAcesAlt, payouts: [160, 320, 480, 640, 800] },
+      { hand: HandType.FourAces, payouts: [160, 320, 480, 640, 800] },
       { hand: HandType.Four2s4sWithA234, payouts: [80, 160, 240, 320, 400] },
-      { hand: HandType.Four2s4sAlt, payouts: [40, 80, 120, 160, 200] },
-      { hand: HandType.Four5sKsAlt, payouts: [25, 50, 75, 100, 125] },
+      { hand: HandType.Four2s4s, payouts: [40, 80, 120, 160, 200] },
+      { hand: HandType.Four5sKings, payouts: [25, 50, 75, 100, 125] },
       { hand: HandType.FullHouse, payouts: [10, 20, 30, 40, 50] },
       { hand: HandType.Flush, payouts: [7, 14, 21, 28, 35] },
       { hand: HandType.Straight, payouts: [5, 10, 15, 20, 25] },
@@ -81,16 +81,16 @@ export const gameConfigs = {
     name: GameType.DoubleDoubleBonus,
     jokers: 0,
     description:
-      "Bonus Poker variant with large kicker-based payouts for 4 Aces, 2-4s, and 5-Ks. Long-term payout: 98.98% (9/6).",
+      "Bonus Poker variant with large kicker-based payouts for FOUR ACES, 2-4s, and 5-Ks. Long-term payout: 98.98% (9/6).",
     payoutTable: [
       { hand: HandType.RoyalFlush, payouts: [250, 500, 750, 1000, 4000] },
       { hand: HandType.StraightFlush, payouts: [50, 100, 150, 200, 250] },
       {
-        hand: HandType.FourAcesWithKicker,
+        hand: HandType.FourAcesWith234,
         payouts: [400, 800, 1200, 1600, 2000],
       },
       { hand: HandType.FourAces, payouts: [160, 320, 480, 640, 800] },
-      { hand: HandType.Four2s4sWithKicker, payouts: [80, 160, 240, 320, 400] },
+      { hand: HandType.Four2s4sWithA234, payouts: [80, 160, 240, 320, 400] },
       { hand: HandType.Four2s4s, payouts: [40, 80, 120, 160, 200] },
       { hand: HandType.Four5sKings, payouts: [50, 100, 150, 200, 250] },
       { hand: HandType.FullHouse, payouts: [9, 18, 27, 36, 45] },
@@ -113,14 +113,13 @@ export const gameConfigs = {
         hand: HandType.FourAcesWith234,
         payouts: [800, 1600, 2400, 3200, 4000],
       },
-      { hand: HandType.FourAcesAlt, payouts: [160, 320, 480, 640, 800] },
+      { hand: HandType.FourAces, payouts: [160, 320, 480, 640, 800] },
       {
         hand: HandType.Four2s4sWithA234,
         payouts: [400, 800, 1200, 1600, 2000],
       },
-      { hand: HandType.Four2s4sAlt, payouts: [80, 160, 240, 320, 400] },
-      { hand: HandType.Four5sKsWithA234, payouts: [250, 500, 750, 1000, 1250] },
-      { hand: HandType.Four5sKsAlt, payouts: [50, 100, 150, 200, 250] },
+      { hand: HandType.Four2s4s, payouts: [80, 160, 240, 320, 400] },
+      { hand: HandType.Four5sKings, payouts: [50, 100, 150, 200, 250] },
       { hand: HandType.FullHouse, payouts: [9, 18, 27, 36, 45] },
       { hand: HandType.Flush, payouts: [7, 14, 21, 28, 35] },
       { hand: HandType.Straight, payouts: [5, 10, 15, 20, 25] },
@@ -184,11 +183,6 @@ export const gameConfigs = {
       { hand: HandType.ThreeOfAKind, payouts: [1, 2, 3, 4, 5] },
     ],
   },
-  // Pick-a-Pair Poker uses special game mechanics implemented in VideoPokerProvider:
-  // - Initial deal: 4 cards with 1-card gap in display
-  // - First 2 cards are automatically kept
-  // - Player chooses between card 3 OR card 4 (using hold toggle)
-  // - After selection, 2 more cards are dealt to complete the 5-card hand
   [GameType.PickAPairPoker]: {
     name: GameType.PickAPairPoker,
     jokers: 0,

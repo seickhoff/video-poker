@@ -18,7 +18,7 @@ export const PayoutTable = ({
   const config = gameConfigs[gameType];
 
   const getRowStyle = (handType: HandType) => {
-    if (currentHand === handType && currentHand !== "") {
+    if (currentHand === handType && currentHand !== HandType.None) {
       return {
         backgroundColor: "#000066",
         color: "#ffffff",
@@ -50,7 +50,7 @@ export const PayoutTable = ({
     if (
       currentHand === handType &&
       wager === betIndex + 1 &&
-      currentHand !== ""
+      currentHand !== HandType.None
     ) {
       return {
         ...baseStyle,
@@ -107,7 +107,6 @@ export const PayoutTable = ({
             border: "none",
             color: "#ffff00",
             borderCollapse: "collapse",
-            textTransform: "uppercase",
             fontSize: "clamp(0.7rem, 2.5vw, 1.3rem)",
             fontFamily: "monospace",
             tableLayout: "fixed",
@@ -125,7 +124,8 @@ export const PayoutTable = ({
                     borderLeft: "none",
                     borderRight: "3px solid #ffd700",
                     color:
-                      currentHand === entry.hand && currentHand !== ""
+                      currentHand === entry.hand &&
+                      currentHand !== HandType.None
                         ? "#ffffff"
                         : "#ffff00",
                     padding: "2px 4px",
@@ -142,7 +142,8 @@ export const PayoutTable = ({
                       backgroundColor: "inherit",
                       paddingRight: "4px",
                       WebkitTextStroke:
-                        currentHand === entry.hand && currentHand !== ""
+                        currentHand === entry.hand &&
+                        currentHand !== HandType.None
                           ? "0.5px #ffd700"
                           : "0.5px #ff6600",
                       textShadow: "1px 1px 2px rgba(0, 0, 0, 0.8)",

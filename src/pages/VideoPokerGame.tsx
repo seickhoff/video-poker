@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useVideoPoker } from "../hooks/useVideoPoker";
 import { PayoutTable } from "../components/PayoutTable";
 import { CardHand } from "../components/CardHand";
+import { HandType, GameType } from "../types/game";
 
 export const VideoPokerGame = () => {
   const navigate = useNavigate();
@@ -912,10 +913,10 @@ export const VideoPokerGame = () => {
                 {sequence === 0 &&
                   "Select your bet amount, then click SHOW CARDS."}
                 {sequence === 1 &&
-                  gameType !== "Pick-a-Pair Poker" &&
+                  gameType !== GameType.PickAPairPoker &&
                   "Click cards to hold them, then click DRAW."}
                 {sequence === 1 &&
-                  gameType === "Pick-a-Pair Poker" &&
+                  gameType === GameType.PickAPairPoker &&
                   "First 2 cards are kept. Choose ONE card from the right pair, then click DRAW."}
                 {sequence === 2 &&
                   payout > 0 &&
@@ -926,7 +927,7 @@ export const VideoPokerGame = () => {
                   "You lost. Click CONTINUE to play again or click MENU to select a new game."}
                 {sequence === 2 &&
                   payout === 0 &&
-                  currentHand === "" &&
+                  currentHand === HandType.None &&
                   "Click CONTINUE to play again or click MENU to select a new game."}
                 {sequence === "d" &&
                   "Click a card to try to beat the dealer's card on the left."}

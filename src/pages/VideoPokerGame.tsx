@@ -4,6 +4,7 @@ import { useVideoPoker } from "../hooks/useVideoPoker";
 import { PayoutTable } from "../components/PayoutTable";
 import { CardHand } from "../components/CardHand";
 import { HandType, GameType } from "../types/game";
+import { getGameStats, calculateActualRTP } from "../utils/statistics";
 
 export const VideoPokerGame = () => {
   const navigate = useNavigate();
@@ -17,6 +18,7 @@ export const VideoPokerGame = () => {
     currentHand,
     payout,
     selectedCardIndex,
+    sessionStats,
     setBet,
     dealCards,
     toggleHoldCard,
@@ -26,6 +28,10 @@ export const VideoPokerGame = () => {
     returnToMenu,
     continueGame,
   } = useVideoPoker();
+
+  // Get long-term RTP for this game
+  const gameStats = gameType ? getGameStats(gameType) : null;
+  const actualRTP = gameStats ? calculateActualRTP(gameStats) : 0;
 
   if (!gameType) {
     navigate("/");
@@ -929,23 +935,116 @@ export const VideoPokerGame = () => {
           {/* Help Bar */}
           <div className="mt-5">
             <div
-              className="text-center p-2"
+              className="p-2"
               style={{
                 backgroundColor: "#000066",
                 border: "2px solid #ffd700",
                 borderRadius: "5px",
-                height: "clamp(50px, 10vw, 60px)",
+                minHeight: "clamp(50px, 10vw, 60px)",
                 display: "flex",
+                flexDirection: "column",
                 alignItems: "center",
                 justifyContent: "center",
+                gap: "8px",
               }}
             >
+              {/* Session Stats (during play) */}
+              {sessionStats.handsPlayed > 0 && (
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "12px",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexWrap: "wrap",
+                    fontSize: "clamp(0.65rem, 1.6vw, 0.85rem)",
+                    fontFamily: "monospace",
+                    fontWeight: "bold",
+                  }}
+                >
+                  <span style={{ color: "#ffff00" }}>
+                    SESSION: {sessionStats.handsPlayed}{" "}
+                    {sessionStats.handsPlayed === 1 ? "hand" : "hands"}
+                  </span>
+                  {sessionStats.biggestWin > 0 && (
+                    <span style={{ color: "#00ff00" }}>
+                      BIGGEST: ${sessionStats.biggestWin}
+                    </span>
+                  )}
+                  {sessionStats.currentDoubleDownChain > 0 && (
+                    <span
+                      style={{
+                        color: "#ff6600",
+                        animation: "pulse 1.5s ease-in-out infinite",
+                      }}
+                    >
+                      🔥 {sessionStats.currentDoubleDownChain}X 🔥
+                    </span>
+                  )}
+                  <span
+                    style={{
+                      color:
+                        sessionStats.netProfit >= 0 ? "#00ff00" : "#ff0000",
+                    }}
+                  >
+                    NET: {sessionStats.netProfit >= 0 ? "+" : ""}$
+                    {sessionStats.netProfit}
+                  </span>
+                  {gameStats && gameStats.totalHandsPlayed > 0 && (
+                    <span
+                      style={{
+                        color: actualRTP >= 100 ? "#00ff00" : "#ff6600",
+                      }}
+                    >
+                      RTP: {actualRTP.toFixed(1)}%
+                    </span>
+                  )}
+                </div>
+              )}
+
+              {/* Previous Stats (before first hand) */}
+              {sessionStats.handsPlayed === 0 &&
+                gameStats &&
+                gameStats.totalHandsPlayed > 0 && (
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: "12px",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexWrap: "wrap",
+                      fontSize: "clamp(0.65rem, 1.6vw, 0.85rem)",
+                      fontFamily: "monospace",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    <span style={{ color: "#ffff00" }}>
+                      LIFETIME: {gameStats.totalHandsPlayed}{" "}
+                      {gameStats.totalHandsPlayed === 1 ? "hand" : "hands"}
+                    </span>
+                    <span
+                      style={{
+                        color: actualRTP >= 100 ? "#00ff00" : "#ff6600",
+                      }}
+                    >
+                      RTP: {actualRTP.toFixed(1)}%
+                    </span>
+                    {gameStats.biggestHandWin > 0 && (
+                      <span style={{ color: "#00ff00" }}>
+                        BEST: ${gameStats.biggestHandWin}
+                      </span>
+                    )}
+                  </div>
+                )}
+
+              {/* Help Text */}
               <p
                 className="mb-0"
                 style={{
                   color: sequence === "d" ? "#ff6600" : "#00ff00",
                   fontWeight: "bold",
                   fontSize: "clamp(0.75rem, 2vw, 1rem)",
+                  textAlign: "center",
                 }}
               >
                 {sequence === 0 &&
@@ -980,6 +1079,13 @@ export const VideoPokerGame = () => {
           </div>
         </Col>
       </Row>
+
+      <style>{`
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.6; }
+        }
+      `}</style>
     </Container>
   );
 };

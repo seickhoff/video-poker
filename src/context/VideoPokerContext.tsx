@@ -1,5 +1,6 @@
 import { createContext } from "react";
 import { Card, GameType, GameSequence, HandType } from "../types/game";
+import { SessionStats } from "../types/statistics";
 
 export interface VideoPokerState {
   gameType: GameType | null;
@@ -14,6 +15,7 @@ export interface VideoPokerState {
   originalCredits: number;
   doubleDownHand: Card[];
   selectedCardIndex: number;
+  sessionStats: SessionStats;
 
   startNewGame: (gameType: GameType, initialCredits?: number) => void;
   setBet: (wager: number) => void;

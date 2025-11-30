@@ -16,6 +16,8 @@ import {
 } from "../utils/deck";
 import { evaluateHand } from "../utils/handEvaluator";
 import { getJokerCount } from "../utils/gameConfigs";
+import { getGameStats, updateGameStats } from "../utils/statistics";
+import { SessionStats } from "../types/statistics";
 
 export const VideoPokerProvider = ({ children }: { children: ReactNode }) => {
   const [gameType, setGameType] = useState<GameTypeType | null>(null);
@@ -36,6 +38,14 @@ export const VideoPokerProvider = ({ children }: { children: ReactNode }) => {
   const [originalCredits, setOriginalCredits] = useState<number>(0);
   const [doubleDownHand, setDoubleDownHand] = useState<Card[]>([]);
   const [selectedCardIndex, setSelectedCardIndex] = useState<number>(-1);
+  const [doubleDownChain, setDoubleDownChain] = useState<number>(0);
+  const [sessionStats, setSessionStats] = useState<SessionStats>({
+    handsPlayed: 0,
+    netProfit: 0,
+    biggestWin: 0,
+    currentDoubleDownChain: 0,
+    startingCredits: 100,
+  });
 
   const startNewGame = useCallback(
     (newGameType: GameTypeType, initialCredits: number = 100) => {
@@ -51,6 +61,20 @@ export const VideoPokerProvider = ({ children }: { children: ReactNode }) => {
       setOriginalCredits(0);
       setDoubleDownHand([]);
       setSelectedCardIndex(-1);
+      setDoubleDownChain(0);
+      setSessionStats({
+        handsPlayed: 0,
+        netProfit: 0,
+        biggestWin: 0,
+        currentDoubleDownChain: 0,
+        startingCredits: initialCredits,
+      });
+
+      // Increment session counter for this game type
+      const stats = getGameStats(newGameType);
+      updateGameStats(newGameType, {
+        sessionsPlayed: stats.sessionsPlayed + 1,
+      });
     },
     []
   );
@@ -152,6 +176,46 @@ export const VideoPokerProvider = ({ children }: { children: ReactNode }) => {
       setPayout(evaluation.payout);
       setOriginalCredits(credits);
       setCredits((prev) => prev + evaluation.payout);
+
+      // Track statistics
+      const stats = getGameStats(gameType);
+      const handFreq = { ...stats.handFrequency };
+      if (evaluation.handType !== HandType.None) {
+        handFreq[evaluation.handType] =
+          (handFreq[evaluation.handType] || 0) + 1;
+      }
+
+      // Track win/loss streaks
+      const won = evaluation.payout > 0;
+      const newWinStreak = won ? stats.currentWinStreak + 1 : 0;
+      const newLossStreak = !won ? stats.currentLossStreak + 1 : 0;
+
+      updateGameStats(gameType, {
+        totalHandsPlayed: stats.totalHandsPlayed + 1,
+        totalWins: stats.totalWins + (won ? 1 : 0),
+        totalLosses: stats.totalLosses + (!won ? 1 : 0),
+        totalCreditsWon: stats.totalCreditsWon + evaluation.payout,
+        totalCreditsLost: stats.totalCreditsLost + wager,
+        biggestHandWin: Math.max(stats.biggestHandWin, evaluation.payout),
+        highestCredits: Math.max(
+          stats.highestCredits,
+          credits + evaluation.payout
+        ),
+        handFrequency: handFreq,
+        currentWinStreak: newWinStreak,
+        currentLossStreak: newLossStreak,
+        longestWinStreak: Math.max(stats.longestWinStreak, newWinStreak),
+        longestLossStreak: Math.max(stats.longestLossStreak, newLossStreak),
+      });
+
+      setSessionStats((prev) => ({
+        ...prev,
+        handsPlayed: prev.handsPlayed + 1,
+        netProfit: prev.netProfit + evaluation.payout - wager,
+        biggestWin: Math.max(prev.biggestWin, evaluation.payout),
+      }));
+
+      setDoubleDownChain(0);
       return;
     }
 
@@ -166,6 +230,45 @@ export const VideoPokerProvider = ({ children }: { children: ReactNode }) => {
     setPayout(evaluation.payout);
     setOriginalCredits(credits);
     setCredits((prev) => prev + evaluation.payout);
+
+    // Track statistics
+    const stats = getGameStats(gameType);
+    const handFreq = { ...stats.handFrequency };
+    if (evaluation.handType !== HandType.None) {
+      handFreq[evaluation.handType] = (handFreq[evaluation.handType] || 0) + 1;
+    }
+
+    // Track win/loss streaks
+    const won = evaluation.payout > 0;
+    const newWinStreak = won ? stats.currentWinStreak + 1 : 0;
+    const newLossStreak = !won ? stats.currentLossStreak + 1 : 0;
+
+    updateGameStats(gameType, {
+      totalHandsPlayed: stats.totalHandsPlayed + 1,
+      totalWins: stats.totalWins + (won ? 1 : 0),
+      totalLosses: stats.totalLosses + (!won ? 1 : 0),
+      totalCreditsWon: stats.totalCreditsWon + evaluation.payout,
+      totalCreditsLost: stats.totalCreditsLost + wager,
+      biggestHandWin: Math.max(stats.biggestHandWin, evaluation.payout),
+      highestCredits: Math.max(
+        stats.highestCredits,
+        credits + evaluation.payout
+      ),
+      handFrequency: handFreq,
+      currentWinStreak: newWinStreak,
+      currentLossStreak: newLossStreak,
+      longestWinStreak: Math.max(stats.longestWinStreak, newWinStreak),
+      longestLossStreak: Math.max(stats.longestLossStreak, newLossStreak),
+    });
+
+    setSessionStats((prev) => ({
+      ...prev,
+      handsPlayed: prev.handsPlayed + 1,
+      netProfit: prev.netProfit + evaluation.payout - wager,
+      biggestWin: Math.max(prev.biggestWin, evaluation.payout),
+    }));
+
+    setDoubleDownChain(0);
   }, [gameType, hand, deck, heldCards, wager, credits]);
 
   const startDoubleDown = useCallback(() => {
@@ -183,7 +286,7 @@ export const VideoPokerProvider = ({ children }: { children: ReactNode }) => {
 
   const selectDoubleDownCard = useCallback(
     (index: number) => {
-      if (index === 0 || doubleDownHand.length === 0) return;
+      if (index === 0 || doubleDownHand.length === 0 || !gameType) return;
 
       const dealerCard = doubleDownHand[0];
       const playerCard = doubleDownHand[index];
@@ -194,22 +297,63 @@ export const VideoPokerProvider = ({ children }: { children: ReactNode }) => {
       // Store which card was selected
       setSelectedCardIndex(index);
 
+      const stats = getGameStats(gameType);
+      const won = playerValue > dealerValue;
+      const tie = playerValue === dealerValue;
+
       // Calculate and apply result immediately
-      if (playerValue > dealerValue) {
+      if (won) {
         const winAmount = 2 * payout;
         setCredits(originalCredits + winAmount);
         setPayout(winAmount);
-      } else if (playerValue === dealerValue) {
+
+        // Track double down success
+        const newChain = doubleDownChain + 1;
+        setDoubleDownChain(newChain);
+
+        updateGameStats(gameType, {
+          totalDoubleDownsAttempted: stats.totalDoubleDownsAttempted + 1,
+          totalDoubleDownsWon: stats.totalDoubleDownsWon + 1,
+          longestDoubleDownChain: Math.max(
+            stats.longestDoubleDownChain,
+            newChain
+          ),
+          biggestDoubleDownWin: Math.max(stats.biggestDoubleDownWin, winAmount),
+          highestCredits: Math.max(
+            stats.highestCredits,
+            originalCredits + winAmount
+          ),
+        });
+
+        setSessionStats((prev) => ({
+          ...prev,
+          currentDoubleDownChain: newChain,
+          biggestWin: Math.max(prev.biggestWin, winAmount),
+        }));
+      } else if (tie) {
         // Tie - keep current payout
+        updateGameStats(gameType, {
+          totalDoubleDownsAttempted: stats.totalDoubleDownsAttempted + 1,
+        });
       } else {
         setCredits(originalCredits);
         setPayout(0);
+        setDoubleDownChain(0);
+
+        updateGameStats(gameType, {
+          totalDoubleDownsAttempted: stats.totalDoubleDownsAttempted + 1,
+        });
+
+        setSessionStats((prev) => ({
+          ...prev,
+          currentDoubleDownChain: 0,
+        }));
       }
 
       // Move to sequence "e" to show double down results
       setSequence("e");
     },
-    [doubleDownHand, payout, originalCredits]
+    [doubleDownHand, payout, originalCredits, gameType, doubleDownChain]
   );
 
   const returnToMenu = useCallback(() => {
@@ -240,6 +384,7 @@ export const VideoPokerProvider = ({ children }: { children: ReactNode }) => {
     originalCredits,
     doubleDownHand,
     selectedCardIndex,
+    sessionStats,
     startNewGame,
     setBet,
     dealCards,

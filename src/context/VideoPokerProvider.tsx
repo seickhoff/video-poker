@@ -83,11 +83,11 @@ export const VideoPokerProvider = ({ children }: { children: ReactNode }) => {
     setWager(newWager);
   }, []);
 
-  const dealCards = useCallback(() => {
+  const dealCards = useCallback(async () => {
     if (!gameType) return;
 
     const jokers = getJokerCount(gameType);
-    const newDeck = shuffleDeck(createDeck(jokers));
+    const newDeck = await shuffleDeck(createDeck(jokers));
 
     // Pick-a-Pair Poker: Deal 4 cards initially, with gap for display
     if (gameType === GameType.PickAPairPoker) {
@@ -271,11 +271,11 @@ export const VideoPokerProvider = ({ children }: { children: ReactNode }) => {
     setDoubleDownChain(0);
   }, [gameType, hand, deck, heldCards, wager, credits]);
 
-  const startDoubleDown = useCallback(() => {
+  const startDoubleDown = useCallback(async () => {
     if (!gameType) return;
 
     const jokers = 0;
-    const newDeck = shuffleDeck(createDeck(jokers));
+    const newDeck = await shuffleDeck(createDeck(jokers));
     const { hand: ddHand } = dealCardsUtil(newDeck, 5);
 
     setDoubleDownHand(ddHand);

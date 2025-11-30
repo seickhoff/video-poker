@@ -1,6 +1,4 @@
 import { Card, Rank, Suit } from "../types/game";
-import { mockHand } from "./mockHand";
-// import { mockHand } from "./mockHand";
 
 const ranks: Rank[] = [
   "A",
@@ -35,12 +33,18 @@ export function createDeck(jokers: number = 0): Card[] {
   return deck;
 }
 
-export function shuffleDeck(deck: Card[]): Card[] {
+export async function shuffleDeck(deck: Card[]): Promise<Card[]> {
   const shuffled = [...deck];
 
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  for (let shuffle = 0; shuffle < 5; shuffle++) {
+    if (shuffle > 0) {
+      await new Promise((resolve) => setTimeout(resolve, shuffle));
+    }
+
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
   }
 
   return shuffled;
@@ -50,8 +54,8 @@ export function dealCards(
   deck: Card[],
   count: number
 ): { hand: Card[]; remainingDeck: Card[] } {
-  // const hand = deck.slice(0, count);
-  const hand = mockHand("2s", "2h", "3d", "5d", "9d");
+  const hand = deck.slice(0, count);
+  // const hand = mockHand("2s", "2h", "3d", "5d", "9d");
 
   const remainingDeck = deck.slice(count);
   return { hand, remainingDeck };

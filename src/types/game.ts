@@ -19,12 +19,19 @@ export type Card = `${Rank}${Suit}` | "O1" | "O2";
 
 export enum GameType {
   JacksOrBetter = "Jacks or Better",
+  TensOrBetter = "Tens or Better",
+  AllAmerican = "All American",
   AcesAndFaces = "Aces and Faces",
+  DoubleAcesAndFaces = "Double Aces and Faces",
   BonusPoker = "Bonus Poker",
+  BonusPokerDeluxe = "Bonus Poker Deluxe",
   DoubleBonus = "Double Bonus",
+  SuperDoubleBonus = "Super Double Bonus",
   DoubleDoubleBonus = "Double Double Bonus",
   TripleDoubleBonus = "Triple Double Bonus",
+  SuperAcesBonus = "Super Aces Bonus",
   DeucesWild = "Deuces Wild",
+  LooseDeuces = "Loose Deuces",
   JokerWild = "Joker Wild",
   DoubleJokerPoker = "Double Joker Poker",
   PickAPairPoker = "Pick-a-Pair Poker",
@@ -42,6 +49,7 @@ export enum HandType {
   ThreeOfAKind = "THREE OF A KIND",
   TwoPair = "TWO PAIR",
   JacksOrBetter = "JACKS OR BETTER",
+  TensOrBetter = "TENS OR BETTER",
   KingsOrBetter = "KINGS OR BETTER",
   NinesOrBetter = "NINES OR BETTER",
   FiveOfAKind = "FIVE OF A KIND",
@@ -53,6 +61,9 @@ export enum HandType {
   Four2s4sWithA234 = "4 2s-4s W/ A,2,3,4",
   Four5sKings = "FOUR 5s-KINGS",
   FourJQK = "FOUR JACKS, QUEENS, or KINGS",
+  Four2s3s4s = "FOUR 2s-3s-4s",
+  Four5sKs = "FOUR 5s-Ks",
+  FourFaces = "FOUR FACES",
   None = "",
 }
 

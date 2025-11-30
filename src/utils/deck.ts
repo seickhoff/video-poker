@@ -1,4 +1,5 @@
 import { Card, Rank, Suit } from "../types/game";
+import { mockHand } from "./mockHand";
 // import { mockHand } from "./mockHand";
 
 const ranks: Rank[] = [
@@ -49,8 +50,8 @@ export function dealCards(
   deck: Card[],
   count: number
 ): { hand: Card[]; remainingDeck: Card[] } {
-  const hand = deck.slice(0, count);
-  // const hand = mockHand("2s", "2h", "2d", "2c", "3c");
+  // const hand = deck.slice(0, count);
+  const hand = mockHand("2s", "2h", "3d", "5d", "9d");
 
   const remainingDeck = deck.slice(count);
   return { hand, remainingDeck };

@@ -95,6 +95,21 @@ After installing dependencies, you can use the following npm commands:
 
 - Serves the production build locally, simulating the production environment for previewing the final build
 
+**`npm test`**
+
+- Runs the test suite in watch mode with Vitest
+- Automatically re-runs tests when files change during development
+
+**`npm run test:run`**
+
+- Runs all tests once without watch mode
+- Useful for CI/CD pipelines or quick validation
+
+**`npm run test:ui`**
+
+- Opens the Vitest UI in your browser for an interactive testing experience
+- Provides visual feedback and detailed test results
+
 ## Game Variations
 
 ### Jacks or Better
@@ -135,6 +150,35 @@ Double Joker poker uses a 54-card deck which includes two wild Jokers. This game
 **Minimum Winning Hand:** Pair of Kings or better
 **Wild Cards:** Two Jokers
 
+## Testing
+
+This project includes comprehensive unit tests for hand evaluation logic to ensure all poker hands are correctly identified and payouts are accurately calculated.
+
+### Running Tests
+
+```bash
+# Run tests in watch mode (recommended during development)
+npm test
+
+# Run all tests once
+npm run test:run
+
+# Open interactive test UI
+npm run test:ui
+```
+
+### Test Coverage
+
+The test suite includes 66+ tests covering:
+
+- **All game variations** - Jacks or Better, Aces and Faces, Bonus Poker, Double Bonus, Double Double Bonus, Triple Double Bonus, Deuces Wild, Joker Wild, Double Joker Poker, and Pick-a-Pair Poker
+- **All hand types** - Royal Flush, Straight Flush, Four of a Kind (with bonus variants), Full House, Flush, Straight, Three of a Kind, Two Pair, and qualifying pairs
+- **Wild card handling** - Deuces Wild and Joker variations with proper wild card substitution
+- **Payout calculations** - Including wager multipliers and special max-bet bonuses
+- **Edge cases** - Hand ranking priorities, wheel straights (A-5), and kicker requirements
+
+Tests are located in `src/utils/handEvaluator.test.ts` and use Vitest for fast, reliable testing.
+
 ## Project Structure
 
 Here's an overview of the directory structure:
@@ -148,6 +192,9 @@ src/
 ├── routes/                # Routing components
 ├── types/                 # TypeScript type definitions
 ├── utils/                 # Utility functions (card logic, hand evaluation, etc.)
+│   ├── handEvaluator.ts      # Core hand evaluation logic
+│   ├── handEvaluator.test.ts # Comprehensive test suite
+│   └── testHelpers.ts        # Testing utilities
 └── assets/                # Images, including card graphics
 ```
 

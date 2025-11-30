@@ -66,7 +66,11 @@ function analyzeHand(hand: Card[], gameType: GameType): HandAnalysis {
       jokerCount === 1) ||
     (suits.length === 3 &&
       suits.every((s) => s === suits[0]) &&
-      jokerCount === 2);
+      jokerCount === 2) ||
+    (suits.length === 2 &&
+      suits.every((s) => s === suits[0]) &&
+      jokerCount === 3) ||
+    (suits.length === 1 && jokerCount === 4);
 
   const isStraight = checkStraight(values, jokerCount);
 

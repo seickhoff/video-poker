@@ -73,7 +73,7 @@ export const VideoPokerGame = () => {
       fluid
       className="min-vh-100 py-4"
       style={{
-        background: "linear-gradient(180deg, #3333cc 0%, #0000cc 100%)",
+        background: "#0000cc",
         color: "#ffffff",
       }}
     >

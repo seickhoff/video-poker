@@ -9,6 +9,7 @@ interface PlayingCardProps {
   isClickable?: boolean;
   onCardClick?: () => void;
   isSelected?: boolean;
+  disableHover?: boolean;
 }
 
 export const PlayingCard = ({
@@ -19,6 +20,7 @@ export const PlayingCard = ({
   isClickable = false,
   onCardClick,
   isSelected = false,
+  disableHover = false,
 }: PlayingCardProps) => {
   const getCardImage = (card: CardType | null): string => {
     if (!card) {
@@ -83,6 +85,7 @@ export const PlayingCard = ({
         }}
         onClick={handleImageClick}
         onMouseEnter={(e) => {
+          if (disableHover) return;
           if (showHold && !isHeld) {
             e.currentTarget.style.transform = "scale(1.05)";
           } else if (isClickable && !isSelected) {
@@ -91,6 +94,7 @@ export const PlayingCard = ({
           }
         }}
         onMouseLeave={(e) => {
+          if (disableHover) return;
           if (showHold && !isHeld) {
             e.currentTarget.style.transform = "scale(1)";
           } else if (isClickable && !isSelected) {

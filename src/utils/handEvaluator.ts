@@ -662,6 +662,129 @@ export function evaluateHand(
       }
       break;
 
+    case GameType.SuperAcesBonus:
+      if (
+        analysis.isRoyal &&
+        analysis.isFlush &&
+        analysis.isStraight &&
+        analysis.isNaturalRoyal
+      ) {
+        handType = HandType.RoyalFlush;
+        payout = wager === 5 ? 4000 : 250 * wager;
+      } else if (analysis.isStraight && analysis.isFlush) {
+        handType = HandType.StraightFlush;
+        payout = 50 * wager;
+      } else if (analysis.isFourKind && analysis.fourKindRank === "A") {
+        handType = HandType.FourAces;
+        payout = 80 * wager;
+      } else if (analysis.isFourKind) {
+        handType = HandType.FourOfAKind;
+        payout = 30 * wager;
+      } else if (analysis.isFullHouse) {
+        handType = HandType.FullHouse;
+        payout = 8 * wager;
+      } else if (analysis.isFlush) {
+        handType = HandType.Flush;
+        payout = 5 * wager;
+      } else if (analysis.isStraight) {
+        handType = HandType.Straight;
+        payout = 4 * wager;
+      } else if (analysis.isThreeKind) {
+        handType = HandType.ThreeOfAKind;
+        payout = 3 * wager;
+      } else if (analysis.isTwoPair) {
+        handType = HandType.TwoPair;
+        payout = 1 * wager;
+      } else if (analysis.isPair && analysis.isJacksOrBetter) {
+        handType = HandType.JacksOrBetter;
+        payout = 1 * wager;
+      }
+      break;
+
+    case GameType.SuperDoubleBonus:
+      if (
+        analysis.isRoyal &&
+        analysis.isFlush &&
+        analysis.isStraight &&
+        analysis.isNaturalRoyal
+      ) {
+        handType = HandType.RoyalFlush;
+        payout = wager === 5 ? 4000 : 250 * wager;
+      } else if (analysis.isStraight && analysis.isFlush) {
+        handType = HandType.StraightFlush;
+        payout = 50 * wager;
+      } else if (analysis.isFourKind && analysis.isFourAces) {
+        handType = HandType.FourAces;
+        payout = 80 * wager;
+      } else if (analysis.isFourKind && analysis.isFour2s3s4s) {
+        handType = HandType.Four2s3s4s;
+        payout = 40 * wager;
+      } else if (analysis.isFourKind && analysis.isFour5sKs) {
+        handType = HandType.Four5sKs;
+        payout = 25 * wager;
+      } else if (analysis.isFullHouse) {
+        handType = HandType.FullHouse;
+        payout = 8 * wager;
+      } else if (analysis.isFlush) {
+        handType = HandType.Flush;
+        payout = 5 * wager;
+      } else if (analysis.isStraight) {
+        handType = HandType.Straight;
+        payout = 4 * wager;
+      } else if (analysis.isThreeKind) {
+        handType = HandType.ThreeOfAKind;
+        payout = 3 * wager;
+      } else if (analysis.isTwoPair) {
+        handType = HandType.TwoPair;
+        payout = 1 * wager;
+      } else if (analysis.isPair && analysis.isJacksOrBetter) {
+        handType = HandType.JacksOrBetter;
+        payout = 1 * wager;
+      }
+      break;
+
+    case GameType.DoubleAcesAndFaces:
+      if (
+        analysis.isRoyal &&
+        analysis.isFlush &&
+        analysis.isStraight &&
+        analysis.isNaturalRoyal
+      ) {
+        handType = HandType.RoyalFlush;
+        payout = wager === 5 ? 4000 : 250 * wager;
+      } else if (analysis.isStraight && analysis.isFlush) {
+        handType = HandType.StraightFlush;
+        payout = 50 * wager;
+      } else if (analysis.isFourKind && analysis.isFourAces) {
+        handType = HandType.FourAces;
+        payout = 80 * wager;
+      } else if (analysis.isFourKind && analysis.isFourFaces) {
+        handType = HandType.FourFaces;
+        payout = 40 * wager;
+      } else if (analysis.isFourKind) {
+        handType = HandType.FourOfAKind;
+        payout = 25 * wager;
+      } else if (analysis.isFullHouse) {
+        handType = HandType.FullHouse;
+        payout = 8 * wager;
+      } else if (analysis.isFlush) {
+        handType = HandType.Flush;
+        payout = 5 * wager;
+      } else if (analysis.isStraight) {
+        handType = HandType.Straight;
+        payout = 4 * wager;
+      } else if (analysis.isThreeKind) {
+        handType = HandType.ThreeOfAKind;
+        payout = 3 * wager;
+      } else if (analysis.isTwoPair) {
+        handType = HandType.TwoPair;
+        payout = 1 * wager;
+      } else if (analysis.isPair && analysis.isJacksOrBetter) {
+        handType = HandType.JacksOrBetter;
+        payout = 1 * wager;
+      }
+      break;
+
     case GameType.JokerWild:
       if (
         analysis.isRoyal &&

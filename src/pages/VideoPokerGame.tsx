@@ -62,7 +62,9 @@ export const VideoPokerGame = () => {
   };
 
   const getButtonText = (): string => {
-    if (sequence === 0) return "Show Cards";
+    if (sequence === 0) {
+      return gameType === "Pick-a-Pair Poker" ? "PLAY" : "Show Cards";
+    }
     if (sequence === 1) return "DRAW";
     if (sequence === "d") return "Show Card";
     return "";
@@ -248,6 +250,10 @@ export const VideoPokerGame = () => {
                       fontFamily: "monospace",
                       minWidth: "clamp(80px, 20vw, 150px)",
                       whiteSpace: "nowrap",
+                      visibility:
+                        gameType === "Pick-a-Pair Poker" && sequence === 1
+                          ? "hidden"
+                          : "visible",
                     }}
                   >
                     {getButtonText()}
@@ -288,6 +294,10 @@ export const VideoPokerGame = () => {
                       fontFamily: "monospace",
                       minWidth: "clamp(80px, 20vw, 150px)",
                       whiteSpace: "nowrap",
+                      visibility:
+                        gameType === "Pick-a-Pair Poker" && sequence === 1
+                          ? "hidden"
+                          : "visible",
                     }}
                   >
                     {getButtonText()}
@@ -315,7 +325,7 @@ export const VideoPokerGame = () => {
           )}
 
           {/* Sequence 2: Results */}
-          {sequence === 2 && credits > 0 && (
+          {sequence === 2 && (
             <>
               {/* Mobile: Row 1 - WIN/LOSE and CREDIT */}
               <Row className="mb-4 d-md-none">
@@ -412,24 +422,26 @@ export const VideoPokerGame = () => {
                       DOUBLE DOWN
                     </Button>
                   )}
-                  <Button
-                    size="lg"
-                    onClick={handleContinue}
-                    style={{
-                      backgroundColor: "#00ff00",
-                      color: "#000000",
-                      border: "3px solid #00cc00",
-                      fontWeight: "bold",
-                      fontSize: "clamp(0.7rem, 1.8vw, 1.1rem)",
-                      padding: "clamp(4px, 1vw, 8px) clamp(6px, 1.5vw, 16px)",
-                      boxShadow: "0 4px 6px rgba(0, 0, 0, 0.5)",
-                      fontFamily: "monospace",
-                      minWidth: "clamp(70px, 18vw, 120px)",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    CONTINUE
-                  </Button>
+                  {credits > 0 && (
+                    <Button
+                      size="lg"
+                      onClick={handleContinue}
+                      style={{
+                        backgroundColor: "#00ff00",
+                        color: "#000000",
+                        border: "3px solid #00cc00",
+                        fontWeight: "bold",
+                        fontSize: "clamp(0.7rem, 1.8vw, 1.1rem)",
+                        padding: "clamp(4px, 1vw, 8px) clamp(6px, 1.5vw, 16px)",
+                        boxShadow: "0 4px 6px rgba(0, 0, 0, 0.5)",
+                        fontFamily: "monospace",
+                        minWidth: "clamp(70px, 18vw, 120px)",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      CONTINUE
+                    </Button>
+                  )}
                 </Col>
               </Row>
               {/* Desktop: Single Row */}
@@ -479,24 +491,26 @@ export const VideoPokerGame = () => {
                       DOUBLE DOWN
                     </Button>
                   )}
-                  <Button
-                    size="lg"
-                    onClick={handleContinue}
-                    style={{
-                      backgroundColor: "#00ff00",
-                      color: "#000000",
-                      border: "3px solid #00cc00",
-                      fontWeight: "bold",
-                      fontSize: "clamp(0.8rem, 2vw, 1.1rem)",
-                      padding: "clamp(4px, 1vw, 8px) clamp(8px, 2vw, 16px)",
-                      boxShadow: "0 4px 6px rgba(0, 0, 0, 0.5)",
-                      fontFamily: "monospace",
-                      minWidth: "clamp(80px, 20vw, 150px)",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    CONTINUE
-                  </Button>
+                  {credits > 0 && (
+                    <Button
+                      size="lg"
+                      onClick={handleContinue}
+                      style={{
+                        backgroundColor: "#00ff00",
+                        color: "#000000",
+                        border: "3px solid #00cc00",
+                        fontWeight: "bold",
+                        fontSize: "clamp(0.8rem, 2vw, 1.1rem)",
+                        padding: "clamp(4px, 1vw, 8px) clamp(8px, 2vw, 16px)",
+                        boxShadow: "0 4px 6px rgba(0, 0, 0, 0.5)",
+                        fontFamily: "monospace",
+                        minWidth: "clamp(80px, 20vw, 150px)",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      CONTINUE
+                    </Button>
+                  )}
                 </Col>
                 <Col
                   md={3}
@@ -1047,14 +1061,13 @@ export const VideoPokerGame = () => {
                   textAlign: "center",
                 }}
               >
-                {sequence === 0 &&
-                  "Select your bet amount, then click SHOW CARDS."}
+                {sequence === 0 && "Select your bet amount, then click PLAY."}
                 {sequence === 1 &&
                   gameType !== GameType.PickAPairPoker &&
                   "Click cards to hold them, then click DRAW."}
                 {sequence === 1 &&
                   gameType === GameType.PickAPairPoker &&
-                  "First 2 cards are kept. Choose ONE card from the right pair, then click DRAW."}
+                  "First 2 cards are kept. Click a stack from the stacks on the right to add to your hand."}
                 {sequence === 2 &&
                   payout > 0 &&
                   "You won! Click CONTINUE to play again or DOUBLE DOWN to risk it."}

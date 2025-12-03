@@ -23,6 +23,38 @@ export const CardHand = ({
 
   const renderCards = () => {
     if (sequence === 0) {
+      // Pick-a-Pair Poker: Show invisible cards with same layout as sequence 1
+      if (gameType === "Pick-a-Pair Poker") {
+        return Array(5)
+          .fill(null)
+          .map((_, index) => {
+            // Index 2 is an empty space (maintains layout)
+            if (index === 2) {
+              return <div key={index} style={{ flex: 1 }} />;
+            }
+            // All cards invisible but maintain spacing
+            return (
+              <div
+                key={index}
+                style={{
+                  flex: "1 1 0",
+                  minWidth: 0,
+                  marginRight:
+                    index === 3
+                      ? "3%"
+                      : index === 4
+                        ? "clamp(8px, 1vw, 0px)"
+                        : "0",
+                  opacity: 0,
+                  pointerEvents: "none",
+                }}
+              >
+                <PlayingCard card={null} />
+              </div>
+            );
+          });
+      }
+      // Standard games: show 5 face-down cards
       return Array(5)
         .fill(null)
         .map((_, index) => <PlayingCard key={index} card={null} />);
@@ -178,6 +210,8 @@ export const CardHand = ({
         backgroundColor: "transparent",
         border: "none",
         padding: "5px 0 10px 0",
+        transform: sequence === 1 ? "scale(1.02)" : "scale(1)",
+        transition: "transform 0.3s ease",
       }}
     >
       <div

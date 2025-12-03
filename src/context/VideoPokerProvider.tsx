@@ -48,7 +48,7 @@ export const VideoPokerProvider = ({ children }: { children: ReactNode }) => {
   });
 
   const startNewGame = useCallback(
-    (newGameType: GameTypeType, initialCredits: number = 100) => {
+    async (newGameType: GameTypeType, initialCredits: number = 100) => {
       setGameType(newGameType);
       setCredits(initialCredits);
       setSequence(0);
@@ -125,13 +125,72 @@ export const VideoPokerProvider = ({ children }: { children: ReactNode }) => {
 
   const toggleHoldCard = useCallback(
     (index: number) => {
-      // Pick-a-Pair Poker: Select card 3 or 4 (indices 3 or 4)
+      // Pick-a-Pair Poker: Select card 3 or 4 (indices 3 or 4) and auto-draw
       if (gameType === GameType.PickAPairPoker && sequence === 1) {
         if (index === 3 || index === 4) {
-          // Select this card, deselect the other
-          const newHeld = [true, true, false, false, false];
-          newHeld[index] = true;
-          setHeldCards(newHeld);
+          const selectedCard = hand[index];
+
+          // Deal 2 more cards
+          const { hand: newCards, remainingDeck } = dealCardsUtil(deck, 2);
+
+          // Build final 5-card hand: [card1, card2, selectedCard, newCard1, newCard2]
+          const finalHand: Card[] = [
+            hand[0], // First auto-kept card
+            hand[1], // Second auto-kept card
+            selectedCard, // Player's choice from card 3 or 4
+            newCards[0], // New card 1
+            newCards[1], // New card 2
+          ];
+
+          setHand(finalHand);
+          setDeck(remainingDeck);
+          setSequence(2);
+
+          const evaluation = evaluateHand(finalHand, gameType, wager);
+          setCurrentHand(evaluation.handType);
+          setPayout(evaluation.payout);
+          setOriginalCredits(credits);
+          setCredits((prev) => prev + evaluation.payout);
+
+          // Track statistics
+          const stats = getGameStats(gameType);
+          const handFreq = { ...stats.handFrequency };
+          if (evaluation.handType !== HandType.None) {
+            handFreq[evaluation.handType] =
+              (handFreq[evaluation.handType] || 0) + 1;
+          }
+
+          // Track win/loss streaks
+          const won = evaluation.payout > 0;
+          const newWinStreak = won ? stats.currentWinStreak + 1 : 0;
+          const newLossStreak = !won ? stats.currentLossStreak + 1 : 0;
+
+          updateGameStats(gameType, {
+            totalHandsPlayed: stats.totalHandsPlayed + 1,
+            totalWins: stats.totalWins + (won ? 1 : 0),
+            totalLosses: stats.totalLosses + (!won ? 1 : 0),
+            totalCreditsWon: stats.totalCreditsWon + evaluation.payout,
+            totalCreditsLost: stats.totalCreditsLost + wager,
+            biggestHandWin: Math.max(stats.biggestHandWin, evaluation.payout),
+            highestCredits: Math.max(
+              stats.highestCredits,
+              credits + evaluation.payout
+            ),
+            handFrequency: handFreq,
+            currentWinStreak: newWinStreak,
+            currentLossStreak: newLossStreak,
+            longestWinStreak: Math.max(stats.longestWinStreak, newWinStreak),
+            longestLossStreak: Math.max(stats.longestLossStreak, newLossStreak),
+          });
+
+          setSessionStats((prev) => ({
+            ...prev,
+            handsPlayed: prev.handsPlayed + 1,
+            netProfit: prev.netProfit + evaluation.payout - wager,
+            biggestWin: Math.max(prev.biggestWin, evaluation.payout),
+          }));
+
+          setDoubleDownChain(0);
         }
         return;
       }
@@ -143,7 +202,7 @@ export const VideoPokerProvider = ({ children }: { children: ReactNode }) => {
         return newHeld;
       });
     },
-    [gameType, sequence]
+    [gameType, sequence, hand, deck, wager, credits]
   );
 
   const drawCards = useCallback(() => {

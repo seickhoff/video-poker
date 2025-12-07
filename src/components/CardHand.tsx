@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Card as CardType, GameSequence } from "../types/game";
 import { PlayingCard } from "./PlayingCard";
 import { useVideoPoker } from "../hooks/useVideoPoker";
@@ -20,6 +21,33 @@ export const CardHand = ({
   selectedCardIndex = -1,
 }: CardHandProps) => {
   const { gameType } = useVideoPoker();
+  const [previousSequence, setPreviousSequence] =
+    useState<GameSequence>(sequence);
+  const [isDiscarding, setIsDiscarding] = useState(false);
+
+  // Detect when sequence changes from 1 to 2 (standard games drawing)
+  useEffect(() => {
+    if (
+      previousSequence === 1 &&
+      sequence === 2 &&
+      gameType !== "Pick-a-Pair Poker"
+    ) {
+      // Start discard animation
+      setIsDiscarding(true);
+
+      // All cards discard simultaneously (no stagger), just the animation duration
+      const discardDuration = 200; // Animation duration
+      const totalDiscardTime = discardDuration;
+
+      // After discard completes, show reveal animation
+      const timer = setTimeout(() => {
+        setIsDiscarding(false);
+      }, totalDiscardTime);
+
+      return () => clearTimeout(timer);
+    }
+    setPreviousSequence(sequence);
+  }, [sequence, previousSequence, gameType]);
 
   const renderCards = () => {
     if (sequence === 0) {
@@ -200,6 +228,7 @@ export const CardHand = ({
         isHeld={heldCards[index]}
         onToggleHold={() => onToggleHold(index)}
         showHold={sequence === 1}
+        shouldDiscard={sequence === 2 && !heldCards[index] && isDiscarding}
       />
     ));
   };

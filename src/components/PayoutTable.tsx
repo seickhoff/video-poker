@@ -7,6 +7,7 @@ interface PayoutTableProps {
   wager: number;
   currentHand: HandType;
   onWagerChange?: (wager: number) => void;
+  credits?: number;
 }
 
 export const PayoutTable = ({
@@ -14,6 +15,7 @@ export const PayoutTable = ({
   wager,
   currentHand,
   onWagerChange,
+  credits,
 }: PayoutTableProps) => {
   const config = gameConfigs[gameType];
 
@@ -40,6 +42,12 @@ export const PayoutTable = ({
   };
 
   const getCellStyle = (handType: HandType, betIndex: number) => {
+    const betAmount = betIndex + 1;
+    // Only check affordability when in betting mode (onWagerChange is provided)
+    const inBettingMode = onWagerChange !== undefined;
+    const canAfford =
+      !inBettingMode || credits === undefined || credits >= betAmount;
+
     const baseStyle = {
       borderTop: "none" as const,
       borderBottom: "none" as const,
@@ -50,9 +58,25 @@ export const PayoutTable = ({
       padding: "2px 4px" as const,
       textAlign: "right" as const,
       width: "12%" as const,
-      cursor: onWagerChange ? "pointer" : "default",
+      cursor:
+        onWagerChange && canAfford
+          ? "pointer"
+          : onWagerChange
+            ? "not-allowed"
+            : "default",
     };
 
+    // If can't afford AND in betting mode, show disabled style
+    if (inBettingMode && !canAfford) {
+      return {
+        ...baseStyle,
+        color: "#666666",
+        opacity: 0.5,
+        cursor: "not-allowed",
+      };
+    }
+
+    // Winning hand highlight (during results)
     if (
       currentHand === handType &&
       wager === betIndex + 1 &&
@@ -65,6 +89,8 @@ export const PayoutTable = ({
         fontWeight: "bold",
       };
     }
+
+    // Selected bet column (during betting)
     if (betIndex + 1 === wager) {
       return {
         ...baseStyle,
@@ -72,12 +98,16 @@ export const PayoutTable = ({
         fontWeight: "bold",
       };
     }
+
     return baseStyle;
   };
 
   const handleColumnClick = (betIndex: number) => {
-    if (onWagerChange) {
-      onWagerChange(betIndex + 1);
+    const betAmount = betIndex + 1;
+    const canAfford = credits === undefined || credits >= betAmount;
+
+    if (onWagerChange && canAfford) {
+      onWagerChange(betAmount);
     }
   };
 

@@ -88,6 +88,7 @@ export const VideoPokerGame = () => {
               wager={wager}
               currentHand={currentHand}
               onWagerChange={sequence === 0 ? setBet : undefined}
+              credits={credits}
             />
           </div>
 
@@ -325,7 +326,7 @@ export const VideoPokerGame = () => {
           )}
 
           {/* Sequence 2: Results */}
-          {sequence === 2 && (
+          {sequence === 2 && credits > 0 && (
             <>
               {/* Mobile: Row 1 - WIN/LOSE and CREDIT */}
               <Row className="mb-4 d-md-none">
@@ -618,7 +619,7 @@ export const VideoPokerGame = () => {
           )}
 
           {/* Sequence e: Double Down Results */}
-          {sequence === "e" && (
+          {sequence === "e" && credits > 0 && (
             <>
               {/* Mobile: Row 1 - WIN/LOSE and CREDIT */}
               <Row className="mb-4 d-md-none">
@@ -854,8 +855,8 @@ export const VideoPokerGame = () => {
             </>
           )}
 
-          {/* Game Over - Sequence 2 with 0 credits */}
-          {credits === 0 && sequence === 2 && (
+          {/* Game Over - Sequence 2 or e with 0 credits */}
+          {credits === 0 && (sequence === 2 || sequence === "e") && (
             <>
               {/* Mobile: Row 1 - CREDIT $0 */}
               <Row className="mb-4 d-md-none">

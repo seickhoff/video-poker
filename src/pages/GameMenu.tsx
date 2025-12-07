@@ -3,13 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { useVideoPoker } from "../hooks/useVideoPoker";
 import { GameType } from "../types/game";
 import { gameConfigs } from "../utils/gameConfigs";
+import { GAME_SETTINGS } from "../config/gameSettings";
 
 export const GameMenu = () => {
   const navigate = useNavigate();
-  const { startNewGame } = useVideoPoker();
+  const { startNewGame, credits } = useVideoPoker();
 
   const handleGameSelect = (gameType: GameType) => {
-    startNewGame(gameType, 100);
+    startNewGame(gameType);
     navigate("/play");
   };
 
@@ -56,7 +57,9 @@ export const GameMenu = () => {
               fontSize: "clamp(0.9rem, 2.5vw, 1.2rem)",
             }}
           >
-            New games start with 100 credits. Make a selection below.
+            {credits === 0
+              ? `You're out of credits! Starting fresh with ${GAME_SETTINGS.DEFAULT_STARTING_CREDITS}.`
+              : "Select a game to continue playing."}
           </p>
 
           {/* Credit Display Row */}
@@ -72,7 +75,8 @@ export const GameMenu = () => {
                   textShadow: "2px 2px 4px rgba(0, 0, 0, 0.8)",
                 }}
               >
-                CREDIT $100
+                CREDIT $
+                {credits > 0 ? credits : GAME_SETTINGS.DEFAULT_STARTING_CREDITS}
               </div>
             </Col>
           </Row>

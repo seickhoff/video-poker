@@ -10,6 +10,7 @@ interface PlayingCardProps {
   onCardClick?: () => void;
   isSelected?: boolean;
   disableHover?: boolean;
+  shouldDiscard?: boolean;
 }
 
 export const PlayingCard = ({
@@ -21,6 +22,7 @@ export const PlayingCard = ({
   onCardClick,
   isSelected = false,
   disableHover = false,
+  shouldDiscard = false,
 }: PlayingCardProps) => {
   const getCardImage = (card: CardType | null): string => {
     if (!card) {
@@ -53,67 +55,82 @@ export const PlayingCard = ({
   };
 
   return (
-    <div className="text-center" style={{ flex: "1 1 0", minWidth: 0 }}>
-      {/* Reserved space for HELD/SELECTED label */}
-      <div
-        style={{
-          height: "clamp(25px, 5vw, 35px)",
-          marginBottom: "5px",
-          fontWeight: "bold",
-          fontSize: "clamp(0.75rem, 2vw, 1.2rem)",
-          color: "#ffffff",
-          fontFamily: "monospace",
-          textShadow: "1px 1px 3px rgba(0, 0, 0, 0.8)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        {isHeld && showHold ? "HELD" : ""}
-        {isSelected ? "SELECTED" : ""}
-      </div>
-      <Card
-        style={{
-          width: "100%",
-          aspectRatio: "5 / 7",
-          cursor: isClickable || showHold ? "pointer" : "default",
-          border: "none",
-          opacity: isClickable && !showHold && !isSelected ? 0.9 : 1,
-          transition: "all 0.2s ease",
-          overflow: "visible",
-          transform: "scale(1)",
-        }}
-        onClick={handleImageClick}
-        onMouseEnter={(e) => {
-          if (disableHover) return;
-          if (showHold && !isHeld) {
-            e.currentTarget.style.transform = "scale(1.05)";
-          } else if (isClickable && !isSelected) {
-            e.currentTarget.style.opacity = "1";
-            e.currentTarget.style.transform = "scale(1.05)";
+    <>
+      <style>{`
+        @keyframes cardDiscard {
+          from {
+            opacity: 1;
           }
-        }}
-        onMouseLeave={(e) => {
-          if (disableHover) return;
-          if (showHold && !isHeld) {
-            e.currentTarget.style.transform = "scale(1)";
-          } else if (isClickable && !isSelected) {
-            e.currentTarget.style.opacity = "0.9";
-            e.currentTarget.style.transform = "scale(1)";
+          to {
+            opacity: 0;
           }
-        }}
-      >
-        <Card.Img
-          variant="top"
-          src={getCardImage(card)}
-          alt={card || "hidden"}
+        }
+      `}</style>
+      <div className="text-center" style={{ flex: "1 1 0", minWidth: 0 }}>
+        {/* Reserved space for HELD/SELECTED label */}
+        <div
+          style={{
+            height: "clamp(25px, 5vw, 35px)",
+            marginBottom: "5px",
+            fontWeight: "bold",
+            fontSize: "clamp(0.75rem, 2vw, 1.2rem)",
+            color: "#ffffff",
+            fontFamily: "monospace",
+            textShadow: "1px 1px 3px rgba(0, 0, 0, 0.8)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          {isHeld && showHold ? "HELD" : ""}
+          {isSelected ? "SELECTED" : ""}
+        </div>
+        <Card
           style={{
             width: "100%",
-            height: "100%",
-            objectFit: "fill",
+            aspectRatio: "5 / 7",
+            cursor: isClickable || showHold ? "pointer" : "default",
+            border: "none",
+            opacity: isClickable && !showHold && !isSelected ? 0.9 : 1,
+            transition: shouldDiscard ? "none" : "all 0.2s ease",
+            overflow: "visible",
+            transform: "scale(1)",
+            animation: shouldDiscard
+              ? `cardDiscard 0.2s ease-out both`
+              : "none",
           }}
-        />
-      </Card>
-    </div>
+          onClick={handleImageClick}
+          onMouseEnter={(e) => {
+            if (disableHover) return;
+            if (showHold && !isHeld) {
+              e.currentTarget.style.transform = "scale(1.05)";
+            } else if (isClickable && !isSelected) {
+              e.currentTarget.style.opacity = "1";
+              e.currentTarget.style.transform = "scale(1.05)";
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (disableHover) return;
+            if (showHold && !isHeld) {
+              e.currentTarget.style.transform = "scale(1)";
+            } else if (isClickable && !isSelected) {
+              e.currentTarget.style.opacity = "0.9";
+              e.currentTarget.style.transform = "scale(1)";
+            }
+          }}
+        >
+          <Card.Img
+            variant="top"
+            src={getCardImage(card)}
+            alt={card || "hidden"}
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "fill",
+            }}
+          />
+        </Card>
+      </div>
+    </>
   );
 };

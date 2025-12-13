@@ -7,6 +7,30 @@ import {
 
 const STORAGE_KEY = "video-poker-statistics";
 
+// Migrate old statistics format to new format
+const migrateStatistics = (stats: any): GameStatistics => {
+  const migratedStats: GameStatistics = {};
+
+  for (const [gameType, gameStats] of Object.entries(stats)) {
+    const typedStats = gameStats as any;
+
+    // Migrate totalPlayTimeMinutes to totalPlayTimeSeconds
+    if ('totalPlayTimeMinutes' in typedStats && !('totalPlayTimeSeconds' in typedStats)) {
+      typedStats.totalPlayTimeSeconds = (typedStats.totalPlayTimeMinutes || 0) * 60;
+      delete typedStats.totalPlayTimeMinutes;
+    }
+
+    // Ensure totalPlayTimeSeconds exists
+    if (!('totalPlayTimeSeconds' in typedStats)) {
+      typedStats.totalPlayTimeSeconds = 0;
+    }
+
+    migratedStats[gameType] = typedStats as GameTypeStats;
+  }
+
+  return migratedStats;
+};
+
 // Load all statistics from localStorage
 export const loadStatistics = (): GameStatistics => {
   try {
@@ -14,7 +38,15 @@ export const loadStatistics = (): GameStatistics => {
     if (!stored) {
       return {};
     }
-    return JSON.parse(stored);
+    const parsed = JSON.parse(stored);
+    const migrated = migrateStatistics(parsed);
+
+    // Save the migrated version back to localStorage
+    if (JSON.stringify(parsed) !== JSON.stringify(migrated)) {
+      saveStatistics(migrated);
+    }
+
+    return migrated;
   } catch (error) {
     console.error("Error loading statistics:", error);
     return {};

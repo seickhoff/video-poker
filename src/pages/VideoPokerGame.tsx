@@ -35,7 +35,22 @@ export const VideoPokerGame = () => {
     selectDoubleDownCard,
     returnToMenu,
     continueGame,
+    pausePlayTimeTracking,
+    resumePlayTimeTracking,
+    getCurrentElapsedSeconds,
   } = useVideoPoker();
+
+  // Handler to open stats modal and pause timer
+  const handleOpenStatsModal = () => {
+    setShowStatsModal(true);
+    pausePlayTimeTracking();
+  };
+
+  // Handler to close stats modal and resume timer
+  const handleCloseStatsModal = () => {
+    setShowStatsModal(false);
+    resumePlayTimeTracking();
+  };
 
   // Get long-term RTP for this game
   const gameStats = gameType ? getGameStats(gameType) : null;
@@ -1115,7 +1130,7 @@ export const VideoPokerGame = () => {
                   }}
                 >
                   <span
-                    onClick={() => setShowStatsModal(true)}
+                    onClick={handleOpenStatsModal}
                     style={{
                       color: "#66ccff",
                       cursor: "pointer",
@@ -1140,7 +1155,7 @@ export const VideoPokerGame = () => {
       {/* Statistics Modal */}
       <Modal
         show={showStatsModal}
-        onHide={() => setShowStatsModal(false)}
+        onHide={handleCloseStatsModal}
         centered
         size="lg"
       >
@@ -1564,11 +1579,18 @@ export const VideoPokerGame = () => {
                       </strong>
                     </Col>
                     <Col xs={5} className="text-end">
-                      {gameStats.totalPlayTimeMinutes === 0
-                        ? "0m"
-                        : gameStats.totalPlayTimeMinutes < 60
-                          ? `${gameStats.totalPlayTimeMinutes}m`
-                          : `${Math.floor(gameStats.totalPlayTimeMinutes / 60)}h ${gameStats.totalPlayTimeMinutes % 60}m`}
+                      {(() => {
+                        // Include current session elapsed time
+                        const currentSessionSeconds = getCurrentElapsedSeconds();
+                        const totalSeconds = gameStats.totalPlayTimeSeconds + currentSessionSeconds;
+                        const hours = Math.floor(totalSeconds / 3600);
+                        const minutes = Math.floor((totalSeconds % 3600) / 60);
+                        const seconds = totalSeconds % 60;
+                        const hh = String(hours).padStart(2, '0');
+                        const mm = String(minutes).padStart(2, '0');
+                        const ss = String(seconds).padStart(2, '0');
+                        return `${hh}:${mm}:${ss}`;
+                      })()}
                     </Col>
                   </Row>
                   <Row className="mb-1">
@@ -1592,7 +1614,7 @@ export const VideoPokerGame = () => {
           }}
         >
           <Button
-            onClick={() => setShowStatsModal(false)}
+            onClick={handleCloseStatsModal}
             style={{
               backgroundColor: "#666666",
               color: "#ffffff",

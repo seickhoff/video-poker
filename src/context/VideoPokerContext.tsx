@@ -26,6 +26,9 @@ export interface VideoPokerState {
   selectDoubleDownCard: (index: number) => void;
   returnToMenu: () => void;
   continueGame: () => void;
+  pausePlayTimeTracking: () => void;
+  resumePlayTimeTracking: () => void;
+  getCurrentElapsedSeconds: () => number;
 }
 
 export const VideoPokerContext = createContext<VideoPokerState | undefined>(

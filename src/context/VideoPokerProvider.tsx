@@ -21,6 +21,7 @@ import { SessionStats } from "../types/statistics";
 import { GAME_SETTINGS } from "../config/gameSettings";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import { useHandResult } from "../hooks/useHandResult";
+import { usePlayTimeTracking } from "../hooks/usePlayTimeTracking";
 
 export const VideoPokerProvider = ({ children }: { children: ReactNode }) => {
   const [gameType, setGameType] = useState<GameTypeType | null>(null);
@@ -59,6 +60,9 @@ export const VideoPokerProvider = ({ children }: { children: ReactNode }) => {
 
   // Use the hand result hook for statistics tracking
   const { recordHandResult, recordDoubleDownAttempt } = useHandResult();
+
+  // Track session play time
+  const { startTracking, stopTracking, pauseTracking, resumeTracking, getCurrentElapsedSeconds } = usePlayTimeTracking(gameType);
 
   // Helper function to get best available wager based on credits
   const getBestAvailableWager = useCallback(
@@ -143,8 +147,11 @@ export const VideoPokerProvider = ({ children }: { children: ReactNode }) => {
       updateGameStats(newGameType, {
         sessionsPlayed: stats.sessionsPlayed + 1,
       });
+
+      // Start tracking session time
+      startTracking();
     },
-    [credits, restoreLastWager]
+    [credits, restoreLastWager, startTracking]
   );
 
   const setBet = useCallback((newWager: number) => {
@@ -405,9 +412,12 @@ export const VideoPokerProvider = ({ children }: { children: ReactNode }) => {
   );
 
   const returnToMenu = useCallback(() => {
+    // Update play time before leaving
+    stopTracking();
+
     setGameType(null);
     setSequence(0);
-  }, []);
+  }, [stopTracking]);
 
   const continueGame = useCallback(() => {
     // Restore last wager for current game type
@@ -448,6 +458,9 @@ export const VideoPokerProvider = ({ children }: { children: ReactNode }) => {
     selectDoubleDownCard,
     returnToMenu,
     continueGame,
+    pausePlayTimeTracking: pauseTracking,
+    resumePlayTimeTracking: resumeTracking,
+    getCurrentElapsedSeconds,
   };
 
   return (

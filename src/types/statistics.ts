@@ -28,7 +28,7 @@ export interface GameTypeStats {
   // Session tracking
   lastPlayed: string; // ISO timestamp
   sessionsPlayed: number;
-  totalPlayTimeMinutes: number; // Approximate total play time
+  totalPlayTimeSeconds: number; // Total play time in seconds
 }
 
 export interface GameStatistics {
@@ -63,5 +63,5 @@ export const createEmptyGameStats = (): GameTypeStats => ({
   handFrequency: {},
   lastPlayed: new Date().toISOString(),
   sessionsPlayed: 0,
-  totalPlayTimeMinutes: 0,
+  totalPlayTimeSeconds: 0,
 });

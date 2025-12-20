@@ -15,13 +15,17 @@ const migrateStatistics = (stats: any): GameStatistics => {
     const typedStats = gameStats as any;
 
     // Migrate totalPlayTimeMinutes to totalPlayTimeSeconds
-    if ('totalPlayTimeMinutes' in typedStats && !('totalPlayTimeSeconds' in typedStats)) {
-      typedStats.totalPlayTimeSeconds = (typedStats.totalPlayTimeMinutes || 0) * 60;
+    if (
+      "totalPlayTimeMinutes" in typedStats &&
+      !("totalPlayTimeSeconds" in typedStats)
+    ) {
+      typedStats.totalPlayTimeSeconds =
+        (typedStats.totalPlayTimeMinutes || 0) * 60;
       delete typedStats.totalPlayTimeMinutes;
     }
 
     // Ensure totalPlayTimeSeconds exists
-    if (!('totalPlayTimeSeconds' in typedStats)) {
+    if (!("totalPlayTimeSeconds" in typedStats)) {
       typedStats.totalPlayTimeSeconds = 0;
     }
 

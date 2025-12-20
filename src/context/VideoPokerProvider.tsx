@@ -62,7 +62,13 @@ export const VideoPokerProvider = ({ children }: { children: ReactNode }) => {
   const { recordHandResult, recordDoubleDownAttempt } = useHandResult();
 
   // Track session play time
-  const { startTracking, stopTracking, pauseTracking, resumeTracking, getCurrentElapsedSeconds } = usePlayTimeTracking(gameType);
+  const {
+    startTracking,
+    stopTracking,
+    pauseTracking,
+    resumeTracking,
+    getCurrentElapsedSeconds,
+  } = usePlayTimeTracking(gameType);
 
   // Helper function to get best available wager based on credits
   const getBestAvailableWager = useCallback(

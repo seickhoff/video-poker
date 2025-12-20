@@ -51,7 +51,8 @@ export function usePlayTimeTracking(gameType: GameType | null) {
 
       const stats = getGameStats(gameType);
       updateGameStats(gameType, {
-        totalPlayTimeSeconds: stats.totalPlayTimeSeconds + sessionDurationSeconds,
+        totalPlayTimeSeconds:
+          stats.totalPlayTimeSeconds + sessionDurationSeconds,
       });
 
       sessionStartTimeRef.current = null;

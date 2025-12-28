@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Container, Row, Col, Form, Button } from "react-bootstrap";
 import { createDeck, shuffleDeck } from "../utils/deck";
 import {
@@ -22,6 +22,7 @@ const STORAGE_KEY = "picker-player-names";
 const DECK_TYPE_KEY = "picker-deck-type";
 const JOKER_MODE_KEY = "picker-joker-mode";
 const HIDDEN_CARDS_KEY = "picker-hidden-cards";
+const CARD_SIZE_KEY = "picker-card-size";
 const DEFAULT_NAMES =
   "Alice, Bob, Charlie, Diana, Eve, Frank, Grace, Henry, Iris, Jack, Kelly, Liam";
 
@@ -47,9 +48,23 @@ export function Picker() {
       return (stored === "1" ? 1 : 2) as HiddenCardsCount;
     }
   );
+  const [cardSize, setCardSize] = useState<number>(() => {
+    const stored = localStorage.getItem(CARD_SIZE_KEY);
+    return stored ? parseInt(stored, 10) : 100;
+  });
+  const [isMobile, setIsMobile] = useState<boolean>(window.innerWidth < 768);
   const [players, setPlayers] = useState<Player[]>([]);
   const [gameState, setGameState] = useState<GameState>("input");
   const [winners, setWinners] = useState<Player[]>([]);
+
+  // Handle window resize for mobile detection
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   // Save player names to localStorage whenever they change
   const handlePlayerNamesChange = (value: string) => {
@@ -73,6 +88,13 @@ export function Picker() {
   const handleHiddenCardsCountChange = (value: HiddenCardsCount) => {
     setHiddenCardsCount(value);
     localStorage.setItem(HIDDEN_CARDS_KEY, value.toString());
+  };
+
+  // Save card size to localStorage whenever it changes
+  const handleCardSizeChange = (delta: number) => {
+    const newSize = Math.max(50, Math.min(200, cardSize + delta));
+    setCardSize(newSize);
+    localStorage.setItem(CARD_SIZE_KEY, newSize.toString());
   };
 
   const handlePlay = async () => {
@@ -257,11 +279,64 @@ export function Picker() {
     >
       <Row className="justify-content-center">
         <Col lg={11} xl={10}>
-          <Row className="mb-2 align-items-center">
-            <Col xs={3}></Col>
-            <Col xs={6}>
+          <Row className="mb-2 align-items-center gx-2 px-2">
+            <Col xs={3} className="d-none d-md-block">
+              <div className="d-flex align-items-center gap-2">
+                <span
+                  style={{
+                    fontFamily: "monospace",
+                    fontWeight: "bold",
+                    fontSize: "clamp(0.8rem, 1.8vw, 1rem)",
+                    color: "#ffff00",
+                  }}
+                ></span>
+                <Button
+                  size="sm"
+                  onClick={() => handleCardSizeChange(-5)}
+                  disabled={cardSize <= 50}
+                  style={{
+                    backgroundColor: "#ffd700",
+                    color: "#000000",
+                    border: "2px solid #ffff00",
+                    fontWeight: "bold",
+                    fontSize: "clamp(0.9rem, 2vw, 1.2rem)",
+                    padding: "2px 10px",
+                  }}
+                >
+                  −
+                </Button>
+                <span
+                  style={{
+                    fontFamily: "monospace",
+                    fontWeight: "bold",
+                    fontSize: "clamp(0.8rem, 1.8vw, 1rem)",
+                    color: "#ffffff",
+                    minWidth: "3rem",
+                    textAlign: "center",
+                  }}
+                >
+                  {cardSize}%
+                </span>
+                <Button
+                  size="sm"
+                  onClick={() => handleCardSizeChange(5)}
+                  disabled={cardSize >= 200}
+                  style={{
+                    backgroundColor: "#ffd700",
+                    color: "#000000",
+                    border: "2px solid #ffff00",
+                    fontWeight: "bold",
+                    fontSize: "clamp(0.9rem, 2vw, 1.2rem)",
+                    padding: "2px 10px",
+                  }}
+                >
+                  +
+                </Button>
+              </div>
+            </Col>
+            <Col xs={9} md={6} className="ps-2 ps-md-0">
               <h1
-                className="text-center"
+                className="text-start text-md-center"
                 style={{
                   fontFamily: "monospace",
                   fontWeight: "bold",
@@ -270,12 +345,13 @@ export function Picker() {
                   textShadow: "3px 3px 6px rgba(0, 0, 0, 0.8)",
                   WebkitTextStroke: "1px #ffff00",
                   marginBottom: "0.5rem",
+                  whiteSpace: "nowrap",
                 }}
               >
                 POKER PICKER
               </h1>
             </Col>
-            <Col xs={3} className="text-end">
+            <Col xs={3} className="text-end pe-2">
               <Button
                 size="lg"
                 onClick={buttonConfig.onClick}
@@ -295,6 +371,7 @@ export function Picker() {
                   fontFamily: "monospace",
                   whiteSpace: "nowrap",
                   textShadow: "1px 1px 2px rgba(0, 0, 0, 0.5)",
+                  minWidth: "clamp(85px, 22vw, 150px)",
                 }}
               >
                 {buttonConfig.text.toUpperCase()}
@@ -615,7 +692,15 @@ export function Picker() {
 
           {gameState !== "input" && (
             <>
-              <Row className="mb-2 g-2" style={{ marginTop: "2rem" }}>
+              <div
+                style={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: "1rem",
+                  marginTop: "2rem",
+                  justifyContent: "center",
+                }}
+              >
                 {players.map((player, playerIndex) => {
                   // Calculate proper rank accounting for ties
                   let rank = 1;
@@ -635,12 +720,13 @@ export function Picker() {
                   }
 
                   return (
-                    <Col
+                    <div
                       key={playerIndex}
-                      xs={12}
-                      md={6}
-                      lg={4}
-                      className="mb-1"
+                      style={{
+                        flex: `0 0 ${isMobile ? "100" : cardSize * 0.3}%`,
+                        minWidth: isMobile ? "100%" : `${cardSize * 2}px`,
+                        maxWidth: isMobile ? "100%" : `${cardSize * 5}px`,
+                      }}
                     >
                       <div
                         className="text-center p-2"
@@ -748,10 +834,10 @@ export function Picker() {
                           ))}
                         </div>
                       </div>
-                    </Col>
+                    </div>
                   );
                 })}
-              </Row>
+              </div>
             </>
           )}
         </Col>

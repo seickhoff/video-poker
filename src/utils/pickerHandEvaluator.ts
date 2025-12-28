@@ -267,8 +267,7 @@ function checkStraightFlushWithJokers(
   if (flushCheck && straightCheck) {
     // Get the high card value from the straight's rank values
     const highValue = straightCheck.rankValues[0];
-    const highRank =
-      highValue === 14 ? "A" : highValue === 5 ? "5" : highValue.toString();
+    const highRank = valueToRank(highValue);
     const isRoyalFlush =
       highValue === 14 && regularCards.some((c) => getCardValue(c) === 14);
 
@@ -315,6 +314,23 @@ function checkFlushWithJokers(
   return null;
 }
 
+function valueToRank(value: number): string {
+  switch (value) {
+    case 14:
+      return "A";
+    case 13:
+      return "K";
+    case 12:
+      return "Q";
+    case 11:
+      return "J";
+    case 5:
+      return "5"; // For ace-low straight
+    default:
+      return value.toString();
+  }
+}
+
 function checkStraightWithJokers(
   regularCards: Card[],
   jokerCount: number
@@ -340,7 +356,7 @@ function checkStraightWithJokers(
     ).length;
 
     if (missing <= jokerCount) {
-      const highRank = high === 14 ? "A" : high === 5 ? "5" : high.toString();
+      const highRank = valueToRank(high);
       return {
         category: "Straight",
         displayName: `Straight (${highRank} high)`,

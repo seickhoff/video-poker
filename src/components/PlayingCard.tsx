@@ -11,6 +11,7 @@ interface PlayingCardProps {
   isSelected?: boolean;
   disableHover?: boolean;
   shouldDiscard?: boolean;
+  hideLabel?: boolean;
 }
 
 export const PlayingCard = ({
@@ -23,6 +24,7 @@ export const PlayingCard = ({
   isSelected = false,
   disableHover = false,
   shouldDiscard = false,
+  hideLabel = false,
 }: PlayingCardProps) => {
   const getCardImage = (card: CardType | null): string => {
     if (!card) {
@@ -68,23 +70,25 @@ export const PlayingCard = ({
       `}</style>
       <div className="text-center" style={{ flex: "1 1 0", minWidth: 0 }}>
         {/* Reserved space for HELD/SELECTED label */}
-        <div
-          style={{
-            height: "clamp(25px, 5vw, 35px)",
-            marginBottom: "5px",
-            fontWeight: "bold",
-            fontSize: "clamp(0.75rem, 2vw, 1.2rem)",
-            color: "#ffffff",
-            fontFamily: "monospace",
-            textShadow: "1px 1px 3px rgba(0, 0, 0, 0.8)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          {isHeld && showHold ? "HELD" : ""}
-          {isSelected ? "SELECTED" : ""}
-        </div>
+        {!hideLabel && (
+          <div
+            style={{
+              height: "clamp(25px, 5vw, 35px)",
+              marginBottom: "5px",
+              fontWeight: "bold",
+              fontSize: "clamp(0.75rem, 2vw, 1.2rem)",
+              color: "#ffffff",
+              fontFamily: "monospace",
+              textShadow: "1px 1px 3px rgba(0, 0, 0, 0.8)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            {isHeld && showHold ? "HELD" : ""}
+            {isSelected ? "SELECTED" : ""}
+          </div>
+        )}
         <Card
           style={{
             width: "100%",

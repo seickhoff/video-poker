@@ -138,12 +138,24 @@ export const VideoPokerGame = () => {
           {/* Sequence 0: Betting */}
           {sequence === 0 && credits > 0 && (
             <>
-              {/* Mobile: Row 1 - Credit Only */}
+              {/* Mobile: Row 1 - BET and CREDIT */}
               <Row className="mb-4 d-md-none">
                 <Col
                   xs={12}
-                  className="d-flex align-items-center justify-content-end"
+                  className="d-flex align-items-center justify-content-between"
                 >
+                  <div
+                    style={{
+                      color: "#ff6600",
+                      fontWeight: "bold",
+                      fontFamily: "monospace",
+                      fontSize: "clamp(0.9rem, 2.5vw, 1.5rem)",
+                      WebkitTextStroke: "clamp(0.5px, 0.15vw, 1px) #ffff00",
+                      textShadow: "2px 2px 4px rgba(0, 0, 0, 0.8)",
+                    }}
+                  >
+                    BET {wager}
+                  </div>
                   <div
                     style={{
                       color: "#ff6600",
@@ -183,7 +195,20 @@ export const VideoPokerGame = () => {
               </Row>
               {/* Desktop: Single Row */}
               <Row className="mb-3 d-none d-md-flex">
-                <Col md={3}></Col>
+                <Col md={3} className="d-flex align-items-center">
+                  <div
+                    style={{
+                      color: "#ff6600",
+                      fontWeight: "bold",
+                      fontFamily: "monospace",
+                      fontSize: "clamp(0.9rem, 2.5vw, 1.5rem)",
+                      WebkitTextStroke: "clamp(0.5px, 0.15vw, 1px) #ffff00",
+                      textShadow: "2px 2px 4px rgba(0, 0, 0, 0.8)",
+                    }}
+                  >
+                    BET {wager}
+                  </div>
+                </Col>
                 <Col
                   md={6}
                   className="d-flex align-items-center justify-content-center"

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Container, Row, Col, Form, Button } from "react-bootstrap";
+import { useNavigate } from "react-router-dom";
 import { createDeck, shuffleDeck } from "../utils/deck";
 import {
   evaluatePokerHand,
@@ -30,22 +31,35 @@ type DeckType = "independent" | "shared";
 type HiddenCardsCount = 1 | 2;
 
 export function Picker() {
+  const navigate = useNavigate();
   const [playerNames, setPlayerNames] = useState<string>(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
     return stored || DEFAULT_NAMES;
   });
   const [deckType, setDeckType] = useState<DeckType>(() => {
     const stored = localStorage.getItem(DECK_TYPE_KEY);
-    return (stored as DeckType) || "independent";
+    if (!stored) {
+      localStorage.setItem(DECK_TYPE_KEY, "independent");
+      return "independent";
+    }
+    return stored as DeckType;
   });
   const [jokerMode, setJokerMode] = useState<boolean>(() => {
     const stored = localStorage.getItem(JOKER_MODE_KEY);
+    if (stored === null) {
+      localStorage.setItem(JOKER_MODE_KEY, "false");
+      return false;
+    }
     return stored === "true";
   });
   const [hiddenCardsCount, setHiddenCardsCount] = useState<HiddenCardsCount>(
     () => {
       const stored = localStorage.getItem(HIDDEN_CARDS_KEY);
-      return (stored === "1" ? 1 : 2) as HiddenCardsCount;
+      if (stored === null) {
+        localStorage.setItem(HIDDEN_CARDS_KEY, "1");
+        return 1;
+      }
+      return stored === "1" ? 1 : 2;
     }
   );
   const [cardSize, setCardSize] = useState<number>(() => {
@@ -248,6 +262,10 @@ export function Picker() {
     setWinners([]);
   };
 
+  const handleMainMenu = () => {
+    navigate("/");
+  };
+
   const getButtonConfig = () => {
     switch (gameState) {
       case "input":
@@ -258,7 +276,7 @@ export function Picker() {
         if (winners.length > 1) {
           return { text: "Tie Breaker", onClick: handleTieBreaker };
         }
-        return { text: "New Game", onClick: handleNewGame };
+        return { text: "Continue", onClick: handleNewGame };
       case "tiebreaker":
         return { text: "Reveal", onClick: handleReveal };
       default:
@@ -279,17 +297,83 @@ export function Picker() {
     >
       <Row className="justify-content-center">
         <Col lg={11} xl={10}>
-          <Row className="mb-2 align-items-center gx-2 px-2">
-            <Col xs={3} className="d-none d-md-block">
-              <div className="d-flex align-items-center gap-2">
-                <span
+          {/* Mobile: Row 1 - Title */}
+          <Row className="mb-2 d-md-none">
+            <Col xs={12} className="text-center">
+              <h1
+                style={{
+                  fontFamily: "monospace",
+                  fontWeight: "bold",
+                  color: "#ffd700",
+                  fontSize: "clamp(1.5rem, 4vw, 2.5rem)",
+                  textShadow: "3px 3px 6px rgba(0, 0, 0, 0.8)",
+                  WebkitTextStroke: "1px #ffff00",
+                  marginBottom: "0.5rem",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                POKER PICKER
+              </h1>
+            </Col>
+          </Row>
+          {/* Mobile: Row 2 - Buttons */}
+          <Row className="mb-3 d-md-none">
+            <Col
+              xs={12}
+              className="d-flex align-items-center justify-content-center gap-2"
+            >
+              {gameState === "input" && (
+                <Button
+                  size="lg"
+                  onClick={handleMainMenu}
                   style={{
-                    fontFamily: "monospace",
+                    backgroundColor: "#666666",
+                    color: "#ffffff",
+                    border: "2px solid #999999",
                     fontWeight: "bold",
-                    fontSize: "clamp(0.8rem, 1.8vw, 1rem)",
-                    color: "#ffff00",
+                    fontSize: "clamp(0.8rem, 1.8vw, 1.1rem)",
+                    padding: "clamp(4px, 1vw, 8px) clamp(8px, 2vw, 16px)",
+                    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.5)",
+                    fontFamily: "monospace",
+                    whiteSpace: "nowrap",
+                    textShadow: "1px 1px 2px rgba(0, 0, 0, 0.5)",
+                    minWidth: "clamp(85px, 22vw, 150px)",
                   }}
-                ></span>
+                >
+                  MENU
+                </Button>
+              )}
+              <Button
+                size="lg"
+                onClick={buttonConfig.onClick}
+                style={{
+                  backgroundColor:
+                    buttonConfig.text === "Tie Breaker" ? "#ff6600" : "#ffd700",
+                  color:
+                    buttonConfig.text === "Tie Breaker" ? "#ffffff" : "#000000",
+                  border:
+                    buttonConfig.text === "Tie Breaker"
+                      ? "2px solid #ffd700"
+                      : "2px solid #ffff00",
+                  fontWeight: "bold",
+                  fontSize: "clamp(0.8rem, 1.8vw, 1.1rem)",
+                  padding: "clamp(4px, 1vw, 8px) clamp(8px, 2vw, 16px)",
+                  boxShadow: "0 2px 4px rgba(0, 0, 0, 0.5)",
+                  fontFamily: "monospace",
+                  whiteSpace: "nowrap",
+                  textShadow: "1px 1px 2px rgba(0, 0, 0, 0.5)",
+                  minWidth: "clamp(85px, 22vw, 150px)",
+                }}
+              >
+                {buttonConfig.text.toUpperCase()}
+              </Button>
+            </Col>
+          </Row>
+          {/* Desktop: Single Row */}
+          <Row className="mb-2 align-items-center gx-2 d-none d-md-flex">
+            <Col xs={1} className="d-none d-lg-block"></Col>
+            <Col xs={3} lg={2}>
+              <div className="d-flex align-items-center gap-2">
                 <Button
                   size="sm"
                   onClick={() => handleCardSizeChange(-5)}
@@ -334,9 +418,9 @@ export function Picker() {
                 </Button>
               </div>
             </Col>
-            <Col xs={9} md={6} className="ps-2 ps-md-0">
+            <Col xs={6} lg={6} className="ps-md-0">
               <h1
-                className="text-start text-md-center"
+                className="text-center"
                 style={{
                   fontFamily: "monospace",
                   fontWeight: "bold",
@@ -351,31 +435,58 @@ export function Picker() {
                 POKER PICKER
               </h1>
             </Col>
-            <Col xs={3} className="text-end pe-2">
-              <Button
-                size="lg"
-                onClick={buttonConfig.onClick}
-                style={{
-                  backgroundColor:
-                    buttonConfig.text === "Tie Breaker" ? "#ff6600" : "#ffd700",
-                  color:
-                    buttonConfig.text === "Tie Breaker" ? "#ffffff" : "#000000",
-                  border:
-                    buttonConfig.text === "Tie Breaker"
-                      ? "2px solid #ffd700"
-                      : "2px solid #ffff00",
-                  fontWeight: "bold",
-                  fontSize: "clamp(0.8rem, 1.8vw, 1.1rem)",
-                  padding: "clamp(4px, 1vw, 8px) clamp(8px, 2vw, 16px)",
-                  boxShadow: "0 2px 4px rgba(0, 0, 0, 0.5)",
-                  fontFamily: "monospace",
-                  whiteSpace: "nowrap",
-                  textShadow: "1px 1px 2px rgba(0, 0, 0, 0.5)",
-                  minWidth: "clamp(85px, 22vw, 150px)",
-                }}
-              >
-                {buttonConfig.text.toUpperCase()}
-              </Button>
+            <Col xs={3} lg={2} className="text-end pe-2">
+              <div className="d-flex align-items-center justify-content-end gap-2">
+                {gameState === "input" && (
+                  <Button
+                    size="lg"
+                    onClick={handleMainMenu}
+                    style={{
+                      backgroundColor: "#666666",
+                      color: "#ffffff",
+                      border: "2px solid #999999",
+                      fontWeight: "bold",
+                      fontSize: "clamp(0.8rem, 1.8vw, 1.1rem)",
+                      padding: "clamp(4px, 1vw, 8px) clamp(8px, 2vw, 16px)",
+                      boxShadow: "0 2px 4px rgba(0, 0, 0, 0.5)",
+                      fontFamily: "monospace",
+                      whiteSpace: "nowrap",
+                      textShadow: "1px 1px 2px rgba(0, 0, 0, 0.5)",
+                      minWidth: "clamp(85px, 22vw, 150px)",
+                    }}
+                  >
+                    MENU
+                  </Button>
+                )}
+                <Button
+                  size="lg"
+                  onClick={buttonConfig.onClick}
+                  style={{
+                    backgroundColor:
+                      buttonConfig.text === "Tie Breaker"
+                        ? "#ff6600"
+                        : "#ffd700",
+                    color:
+                      buttonConfig.text === "Tie Breaker"
+                        ? "#ffffff"
+                        : "#000000",
+                    border:
+                      buttonConfig.text === "Tie Breaker"
+                        ? "2px solid #ffd700"
+                        : "2px solid #ffff00",
+                    fontWeight: "bold",
+                    fontSize: "clamp(0.8rem, 1.8vw, 1.1rem)",
+                    padding: "clamp(4px, 1vw, 8px) clamp(8px, 2vw, 16px)",
+                    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.5)",
+                    fontFamily: "monospace",
+                    whiteSpace: "nowrap",
+                    textShadow: "1px 1px 2px rgba(0, 0, 0, 0.5)",
+                    minWidth: "clamp(85px, 22vw, 150px)",
+                  }}
+                >
+                  {buttonConfig.text.toUpperCase()}
+                </Button>
+              </div>
             </Col>
           </Row>
 
@@ -415,27 +526,35 @@ export function Picker() {
                 </Form.Group>
 
                 <Row className="mb-3">
-                  <Col md={6}>
+                  <Col xs={4} md={6}>
                     <Form.Label
                       style={{
                         fontFamily: "monospace",
                         fontWeight: "bold",
-                        fontSize: "clamp(0.9rem, 2vw, 1.1rem)",
+                        fontSize: "clamp(0.75rem, 2vw, 1.1rem)",
                         color: "#ffff00",
                       }}
                     >
-                      Deck Type
+                      <span className="d-md-none">Deck</span>
+                      <span className="d-none d-md-inline">Deck Type</span>
                     </Form.Label>
                     <Form.Check
                       type="radio"
                       id="deck-independent"
                       name="deckType"
-                      label="Each player has an independent deck"
+                      label={
+                        <>
+                          <span className="d-md-none">Individual</span>
+                          <span className="d-none d-md-inline">
+                            Each player has an independent deck
+                          </span>
+                        </>
+                      }
                       checked={deckType === "independent"}
                       onChange={() => handleDeckTypeChange("independent")}
                       style={{
                         fontFamily: "monospace",
-                        fontSize: "clamp(0.85rem, 1.8vw, 1rem)",
+                        fontSize: "clamp(0.7rem, 1.8vw, 1rem)",
                         color: "#ffff00",
                       }}
                     />
@@ -443,23 +562,30 @@ export function Picker() {
                       type="radio"
                       id="deck-shared"
                       name="deckType"
-                      label="All players draw from shared deck(s)"
+                      label={
+                        <>
+                          <span className="d-md-none">Shared</span>
+                          <span className="d-none d-md-inline">
+                            All players draw from shared deck(s)
+                          </span>
+                        </>
+                      }
                       checked={deckType === "shared"}
                       onChange={() => handleDeckTypeChange("shared")}
                       style={{
                         fontFamily: "monospace",
-                        fontSize: "clamp(0.85rem, 1.8vw, 1rem)",
+                        fontSize: "clamp(0.7rem, 1.8vw, 1rem)",
                         color: "#ffff00",
                       }}
                     />
                   </Col>
 
-                  <Col md={3}>
+                  <Col xs={4} md={3}>
                     <Form.Label
                       style={{
                         fontFamily: "monospace",
                         fontWeight: "bold",
-                        fontSize: "clamp(0.9rem, 2vw, 1.1rem)",
+                        fontSize: "clamp(0.75rem, 2vw, 1.1rem)",
                         color: "#ffff00",
                       }}
                     >
@@ -469,12 +595,17 @@ export function Picker() {
                       type="radio"
                       id="jokers-no"
                       name="jokerMode"
-                      label="No jokers"
+                      label={
+                        <>
+                          <span className="d-md-none">None</span>
+                          <span className="d-none d-md-inline">No jokers</span>
+                        </>
+                      }
                       checked={!jokerMode}
                       onChange={() => handleJokerModeChange(false)}
                       style={{
                         fontFamily: "monospace",
-                        fontSize: "clamp(0.85rem, 1.8vw, 1rem)",
+                        fontSize: "clamp(0.7rem, 1.8vw, 1rem)",
                         color: "#ffff00",
                       }}
                     />
@@ -482,38 +613,51 @@ export function Picker() {
                       type="radio"
                       id="jokers-yes"
                       name="jokerMode"
-                      label="Two jokers per deck"
+                      label={
+                        <>
+                          <span className="d-md-none">Two</span>
+                          <span className="d-none d-md-inline">
+                            Two jokers per deck
+                          </span>
+                        </>
+                      }
                       checked={jokerMode}
                       onChange={() => handleJokerModeChange(true)}
                       style={{
                         fontFamily: "monospace",
-                        fontSize: "clamp(0.85rem, 1.8vw, 1rem)",
+                        fontSize: "clamp(0.7rem, 1.8vw, 1rem)",
                         color: "#ffff00",
                       }}
                     />
                   </Col>
 
-                  <Col md={3}>
+                  <Col xs={4} md={3}>
                     <Form.Label
                       style={{
                         fontFamily: "monospace",
                         fontWeight: "bold",
-                        fontSize: "clamp(0.9rem, 2vw, 1.1rem)",
+                        fontSize: "clamp(0.75rem, 2vw, 1.1rem)",
                         color: "#ffff00",
                       }}
                     >
-                      Hidden Cards
+                      <span className="d-md-none">Hidden</span>
+                      <span className="d-none d-md-inline">Hidden Cards</span>
                     </Form.Label>
                     <Form.Check
                       type="radio"
                       id="hidden-1"
                       name="hiddenCards"
-                      label="One card"
+                      label={
+                        <>
+                          <span className="d-md-none">One</span>
+                          <span className="d-none d-md-inline">One card</span>
+                        </>
+                      }
                       checked={hiddenCardsCount === 1}
                       onChange={() => handleHiddenCardsCountChange(1)}
                       style={{
                         fontFamily: "monospace",
-                        fontSize: "clamp(0.85rem, 1.8vw, 1rem)",
+                        fontSize: "clamp(0.7rem, 1.8vw, 1rem)",
                         color: "#ffff00",
                       }}
                     />
@@ -521,20 +665,186 @@ export function Picker() {
                       type="radio"
                       id="hidden-2"
                       name="hiddenCards"
-                      label="Two cards"
+                      label={
+                        <>
+                          <span className="d-md-none">Two</span>
+                          <span className="d-none d-md-inline">Two cards</span>
+                        </>
+                      }
                       checked={hiddenCardsCount === 2}
                       onChange={() => handleHiddenCardsCountChange(2)}
                       style={{
                         fontFamily: "monospace",
-                        fontSize: "clamp(0.85rem, 1.8vw, 1rem)",
+                        fontSize: "clamp(0.7rem, 1.8vw, 1rem)",
                         color: "#ffff00",
                       }}
                     />
                   </Col>
                 </Row>
 
+                {/* Hand Rankings - Mobile only */}
                 <div
-                  className="mt-4"
+                  className="mt-3 d-md-none"
+                  style={{
+                    backgroundColor: "#000066",
+                    border: "2px solid #ffd700",
+                    borderRadius: "6px",
+                    padding: "0.75rem",
+                  }}
+                >
+                  <h3
+                    style={{
+                      fontFamily: "monospace",
+                      fontWeight: "bold",
+                      fontSize: "clamp(0.85rem, 2vw, 1rem)",
+                      color: "#ffd700",
+                      marginBottom: "0.5rem",
+                    }}
+                  >
+                    Hand Rankings
+                  </h3>
+                  <table
+                    style={{
+                      width: "100%",
+                      fontFamily: "monospace",
+                      fontSize: "clamp(0.65rem, 1.5vw, 0.75rem)",
+                      color: "#ffff00",
+                      borderCollapse: "collapse",
+                    }}
+                  >
+                    <tbody>
+                      <tr style={{ borderBottom: "1px solid #ffd700" }}>
+                        <td
+                          style={{
+                            padding: "0.25rem 0.5rem 0.25rem 0.25rem",
+                            fontWeight: "bold",
+                          }}
+                        >
+                          1. Five of a Kind
+                        </td>
+                        <td style={{ padding: "0.25rem" }}>Five same rank</td>
+                      </tr>
+                      <tr style={{ borderBottom: "1px solid #ffd700" }}>
+                        <td
+                          style={{
+                            padding: "0.25rem 0.5rem 0.25rem 0.25rem",
+                            fontWeight: "bold",
+                          }}
+                        >
+                          2. Royal Flush
+                        </td>
+                        <td style={{ padding: "0.25rem" }}>
+                          A-K-Q-J-10 same suit
+                        </td>
+                      </tr>
+                      <tr style={{ borderBottom: "1px solid #ffd700" }}>
+                        <td
+                          style={{
+                            padding: "0.25rem 0.5rem 0.25rem 0.25rem",
+                            fontWeight: "bold",
+                          }}
+                        >
+                          3. Straight Flush
+                        </td>
+                        <td style={{ padding: "0.25rem" }}>
+                          Five seq. same suit
+                        </td>
+                      </tr>
+                      <tr style={{ borderBottom: "1px solid #ffd700" }}>
+                        <td
+                          style={{
+                            padding: "0.25rem 0.5rem 0.25rem 0.25rem",
+                            fontWeight: "bold",
+                          }}
+                        >
+                          4. Four of a Kind
+                        </td>
+                        <td style={{ padding: "0.25rem" }}>Four same rank</td>
+                      </tr>
+                      <tr style={{ borderBottom: "1px solid #ffd700" }}>
+                        <td
+                          style={{
+                            padding: "0.25rem 0.5rem 0.25rem 0.25rem",
+                            fontWeight: "bold",
+                          }}
+                        >
+                          5. Full House
+                        </td>
+                        <td style={{ padding: "0.25rem" }}>Three + pair</td>
+                      </tr>
+                      <tr style={{ borderBottom: "1px solid #ffd700" }}>
+                        <td
+                          style={{
+                            padding: "0.25rem 0.5rem 0.25rem 0.25rem",
+                            fontWeight: "bold",
+                          }}
+                        >
+                          6. Flush
+                        </td>
+                        <td style={{ padding: "0.25rem" }}>Five same suit</td>
+                      </tr>
+                      <tr style={{ borderBottom: "1px solid #ffd700" }}>
+                        <td
+                          style={{
+                            padding: "0.25rem 0.5rem 0.25rem 0.25rem",
+                            fontWeight: "bold",
+                          }}
+                        >
+                          7. Straight
+                        </td>
+                        <td style={{ padding: "0.25rem" }}>Five sequential</td>
+                      </tr>
+                      <tr style={{ borderBottom: "1px solid #ffd700" }}>
+                        <td
+                          style={{
+                            padding: "0.25rem 0.5rem 0.25rem 0.25rem",
+                            fontWeight: "bold",
+                          }}
+                        >
+                          8. Three of a Kind
+                        </td>
+                        <td style={{ padding: "0.25rem" }}>Three same rank</td>
+                      </tr>
+                      <tr style={{ borderBottom: "1px solid #ffd700" }}>
+                        <td
+                          style={{
+                            padding: "0.25rem 0.5rem 0.25rem 0.25rem",
+                            fontWeight: "bold",
+                          }}
+                        >
+                          9. Two Pair
+                        </td>
+                        <td style={{ padding: "0.25rem" }}>Two pairs</td>
+                      </tr>
+                      <tr style={{ borderBottom: "1px solid #ffd700" }}>
+                        <td
+                          style={{
+                            padding: "0.25rem 0.5rem 0.25rem 0.25rem",
+                            fontWeight: "bold",
+                          }}
+                        >
+                          10. One Pair
+                        </td>
+                        <td style={{ padding: "0.25rem" }}>Two same rank</td>
+                      </tr>
+                      <tr>
+                        <td
+                          style={{
+                            padding: "0.25rem 0.5rem 0.25rem 0.25rem",
+                            fontWeight: "bold",
+                          }}
+                        >
+                          11. High Card
+                        </td>
+                        <td style={{ padding: "0.25rem" }}>No match</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* How to Play - Desktop only */}
+                <div
+                  className="mt-4 d-none d-md-block"
                   style={{
                     backgroundColor: "#000066",
                     border: "2px solid #ffd700",

@@ -18,6 +18,10 @@ export const GameMenu = () => {
     navigate("/statistics");
   };
 
+  const handlePickerGame = () => {
+    navigate("/picker");
+  };
+
   // Sort games alphabetically
   const sortedGames = Object.values(gameConfigs).sort((a, b) =>
     a.name.localeCompare(b.name)
@@ -138,6 +142,62 @@ export const GameMenu = () => {
                 </Card>
               </Col>
             ))}
+
+            {/* Picker Card */}
+            <Col xs={12} md={6} lg={4} className="mb-4">
+              <Card
+                onClick={handlePickerGame}
+                style={{
+                  backgroundColor: "#440044",
+                  border: "3px solid #ff00ff",
+                  cursor: "pointer",
+                  transition: "all 0.2s ease",
+                  height: "100%",
+                  borderRadius: 16,
+                }}
+                className="h-100"
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "#660066";
+                  e.currentTarget.style.borderColor = "#ff00ff";
+                  e.currentTarget.style.transform = "translateY(-4px)";
+                  e.currentTarget.style.boxShadow =
+                    "0 8px 16px rgba(255, 0, 255, 0.4)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "#440044";
+                  e.currentTarget.style.borderColor = "#ff00ff";
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow = "none";
+                }}
+              >
+                <Card.Body className="d-flex flex-column align-items-center justify-content-center">
+                  <Card.Title
+                    className="text-center mb-3"
+                    style={{
+                      color: "#ff6600",
+                      fontWeight: "bold",
+                      fontFamily: "monospace",
+                      fontSize: "clamp(1rem, 2.5vw, 1.3rem)",
+                      WebkitTextStroke: "clamp(0.5px, 0.15vw, 1px) #ffff00",
+                      textShadow: "2px 2px 4px rgba(0, 0, 0, 0.8)",
+                    }}
+                  >
+                    POKER PICKER
+                  </Card.Title>
+                  <Card.Text
+                    className="text-center"
+                    style={{
+                      color: "#ffff00",
+                      fontFamily: "monospace",
+                      fontSize: "clamp(0.7rem, 1.5vw, 0.85rem)",
+                      lineHeight: "1.4",
+                    }}
+                  >
+                    Multi-player poker hand picker game
+                  </Card.Text>
+                </Card.Body>
+              </Card>
+            </Col>
 
             {/* Statistics Card */}
             <Col xs={12} md={6} lg={4} className="mb-4">

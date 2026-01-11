@@ -1,61 +1,62 @@
 import { useState, useEffect } from "react";
-import { Container, Row, Col, Form, Button } from "react-bootstrap";
-import { createDeck, shuffleDeck } from "../utils/deck";
-import {
-  evaluatePokerHand,
-  comparePokerHands,
-  PokerHandEvaluation,
-} from "../utils/pickerHandEvaluator";
-import { Card } from "../types/game";
+import { Container, Row, Col, Form, Button, Badge } from "react-bootstrap";
+import { comparePokerHands } from "../utils/pickerHandEvaluator";
 import { PlayingCard } from "../components/PlayingCard";
+import { usePickerSocket } from "../hooks/usePickerSocket";
 
-interface Player {
-  name: string;
-  cards: Card[];
-  deck: Card[];
-  handEvaluation: PokerHandEvaluation | null;
-}
-
-type GameState = "input" | "showing" | "revealed" | "tiebreaker";
-
-const STORAGE_KEY = "picker-player-names";
 const DECK_TYPE_KEY = "picker-deck-type";
 const JOKER_MODE_KEY = "picker-joker-mode";
 const HIDDEN_CARDS_KEY = "picker-hidden-cards";
 const CARD_SIZE_KEY = "picker-card-size";
-const DEFAULT_NAMES =
-  "Alice, Bob, Charlie, Diana, Eve, Frank, Grace, Henry, Iris, Jack, Kelly, Liam";
-
-type DeckType = "independent" | "shared";
-type HiddenCardsCount = 1 | 2;
+const PLAYER_NAME_KEY = "picker-player-name";
 
 export function Picker() {
-  const [playerNames, setPlayerNames] = useState<string>(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    return stored || DEFAULT_NAMES;
+  const {
+    isConnected,
+    isHost,
+    hasHost,
+    playerId,
+    gameState,
+    players,
+    winners,
+    config,
+    participants,
+    claimHost,
+    releaseHost,
+    forceClaimHost,
+    joinGame,
+    updateConfig,
+    startGame,
+    revealCards,
+    startTiebreaker,
+    newGame,
+    error,
+  } = usePickerSocket();
+
+  const [playerName, setPlayerName] = useState<string>(() => {
+    return localStorage.getItem(PLAYER_NAME_KEY) || "";
   });
-  const [deckType, setDeckType] = useState<DeckType>(() => {
-    const stored = localStorage.getItem(DECK_TYPE_KEY);
-    return (stored as DeckType) || "independent";
-  });
-  const [jokerMode, setJokerMode] = useState<boolean>(() => {
-    const stored = localStorage.getItem(JOKER_MODE_KEY);
-    return stored === "true";
-  });
-  const [hiddenCardsCount, setHiddenCardsCount] = useState<HiddenCardsCount>(
-    () => {
-      const stored = localStorage.getItem(HIDDEN_CARDS_KEY);
-      return (stored === "1" ? 1 : 2) as HiddenCardsCount;
-    }
-  );
+  const [hasJoined, setHasJoined] = useState(false);
   const [cardSize, setCardSize] = useState<number>(() => {
     const stored = localStorage.getItem(CARD_SIZE_KEY);
     return stored ? parseInt(stored, 10) : 100;
   });
   const [isMobile, setIsMobile] = useState<boolean>(window.innerWidth < 768);
-  const [players, setPlayers] = useState<Player[]>([]);
-  const [gameState, setGameState] = useState<GameState>("input");
-  const [winners, setWinners] = useState<Player[]>([]);
+
+  // Load config from localStorage
+  useEffect(() => {
+    if (isHost) {
+      const storedDeckType = localStorage.getItem(DECK_TYPE_KEY);
+      const storedJokerMode = localStorage.getItem(JOKER_MODE_KEY);
+      const storedHiddenCards = localStorage.getItem(HIDDEN_CARDS_KEY);
+
+      updateConfig({
+        deckType: (storedDeckType as "independent" | "shared") || "independent",
+        jokerMode: storedJokerMode === "true",
+        hiddenCardsCount: (storedHiddenCards === "1" ? 1 : 2) as 1 | 2,
+      });
+    }
+  }, [isHost, updateConfig]);
 
   // Handle window resize for mobile detection
   useEffect(() => {
@@ -66,207 +67,177 @@ export function Picker() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Save player names to localStorage whenever they change
-  const handlePlayerNamesChange = (value: string) => {
-    setPlayerNames(value);
-    localStorage.setItem(STORAGE_KEY, value);
+  // Removed auto-join logic - player must explicitly click JOIN GAME button
+
+  const handlePlayerNameChange = (value: string) => {
+    setPlayerName(value);
+    localStorage.setItem(PLAYER_NAME_KEY, value);
   };
 
-  // Save deck type to localStorage whenever it changes
-  const handleDeckTypeChange = (value: DeckType) => {
-    setDeckType(value);
+  const handleDeckTypeChange = (value: "independent" | "shared") => {
     localStorage.setItem(DECK_TYPE_KEY, value);
+    updateConfig({ ...config, deckType: value });
   };
 
-  // Save joker mode to localStorage whenever it changes
   const handleJokerModeChange = (value: boolean) => {
-    setJokerMode(value);
     localStorage.setItem(JOKER_MODE_KEY, value.toString());
+    updateConfig({ ...config, jokerMode: value });
   };
 
-  // Save hidden cards count to localStorage whenever it changes
-  const handleHiddenCardsCountChange = (value: HiddenCardsCount) => {
-    setHiddenCardsCount(value);
+  const handleHiddenCardsCountChange = (value: 1 | 2) => {
     localStorage.setItem(HIDDEN_CARDS_KEY, value.toString());
+    updateConfig({ ...config, hiddenCardsCount: value });
   };
 
-  // Save card size to localStorage whenever it changes
   const handleCardSizeChange = (delta: number) => {
     const newSize = Math.max(50, Math.min(200, cardSize + delta));
     setCardSize(newSize);
     localStorage.setItem(CARD_SIZE_KEY, newSize.toString());
   };
 
-  const handlePlay = async () => {
-    const names = playerNames
-      .split(",")
-      .map((name) => name.trim())
-      .filter((name) => name.length > 0);
-
-    if (names.length === 0) {
-      alert("Please enter at least one player name");
-      return;
+  const handleClaimHost = () => {
+    if (playerName.trim()) {
+      claimHost(playerName.trim());
+      setHasJoined(true);
     }
-
-    let newPlayers: Player[];
-
-    if (deckType === "shared") {
-      // Shared deck mode: create enough complete decks for all players
-      const cardsNeeded = names.length * 5;
-      const cardsPerDeck = jokerMode ? 54 : 52; // 52 cards or 54 with 2 jokers
-      const jokersPerDeck = jokerMode ? 2 : 0;
-      const decksNeeded = Math.ceil(cardsNeeded / cardsPerDeck);
-
-      // Create multiple complete decks
-      let combinedDeck: Card[] = [];
-      for (let i = 0; i < decksNeeded; i++) {
-        combinedDeck = combinedDeck.concat(createDeck(jokersPerDeck));
-      }
-
-      // Shuffle the combined deck before dealing
-      const shuffledDeck = await shuffleDeck(combinedDeck);
-
-      // Deal 5 cards to each player from the shared deck
-      newPlayers = names.map((name, index) => {
-        const startIdx = index * 5;
-        const cards = shuffledDeck.slice(startIdx, startIdx + 5);
-        return {
-          name,
-          cards,
-          deck: [],
-          handEvaluation: null,
-        };
-      });
-    } else {
-      // Independent deck mode: each player gets their own deck
-      const jokersPerDeck = jokerMode ? 2 : 0;
-      newPlayers = await Promise.all(
-        names.map(async (name) => {
-          const deck = createDeck(jokersPerDeck);
-          const shuffledDeck = await shuffleDeck(deck);
-          const cards = shuffledDeck.slice(0, 5);
-          const remainingDeck = shuffledDeck.slice(5);
-
-          return {
-            name,
-            cards,
-            deck: remainingDeck,
-            handEvaluation: null,
-          };
-        })
-      );
-    }
-
-    // TESTING: Force ties by giving groups of players the same cards
-    // Comment out this block when done testing
-    // const testCards1: Card[] = ["Ah", "Kh", "Qh", "Jh", "10h"]; // Royal Flush
-    // const testCards2: Card[] = ["As", "Ks", "Qs", "Js", "9s"]; // Flush (Ace high)
-    // newPlayers = newPlayers.map((player, index) => ({
-    //   ...player,
-    //   cards: index < 2 ? testCards1 : testCards2,
-    // }));
-    // END TESTING
-
-    // Sort players alphabetically by name
-    const sortedPlayers = newPlayers.sort((a, b) =>
-      a.name.localeCompare(b.name)
-    );
-
-    setPlayers(sortedPlayers);
-    setGameState("showing");
-    setWinners([]);
   };
 
-  const handleReveal = () => {
-    // Evaluate each player's hand
-    const evaluatedPlayers = players.map((player) => {
-      const evaluation = evaluatePokerHand(player.cards);
-      return {
-        ...player,
-        handEvaluation: evaluation,
-      };
-    });
-
-    // Sort players by hand strength (best to worst)
-    const sortedPlayers = [...evaluatedPlayers].sort((a, b) => {
-      return comparePokerHands(b.handEvaluation!, a.handEvaluation!);
-    });
-
-    setPlayers(sortedPlayers);
-
-    // Find the winner(s) by comparing hands
-    if (sortedPlayers.length === 0) return;
-
-    const topPlayers: Player[] = [sortedPlayers[0]];
-
-    for (let i = 1; i < sortedPlayers.length; i++) {
-      const player = sortedPlayers[i];
-      const comparison = comparePokerHands(
-        player.handEvaluation!,
-        topPlayers[0].handEvaluation!
-      );
-
-      if (comparison === 0) {
-        // Tie with the best hand
-        topPlayers.push(player);
-      } else {
-        // Lower hand, stop checking
-        break;
-      }
+  const handleJoinGame = () => {
+    if (playerName.trim()) {
+      joinGame(playerName.trim());
+      setHasJoined(true);
     }
-
-    setWinners(topPlayers);
-    setGameState("revealed");
   };
 
-  const handleTieBreaker = async () => {
-    // Create new hands for tied players only
-    const newPlayers: Player[] = await Promise.all(
-      winners.map(async (player) => {
-        const deck = createDeck();
-        const shuffledDeck = await shuffleDeck(deck);
-        const cards = shuffledDeck.slice(0, 5);
-        const remainingDeck = shuffledDeck.slice(5);
-
-        return {
-          name: player.name,
-          cards,
-          deck: remainingDeck,
-          handEvaluation: null,
-        };
-      })
-    );
-
-    setPlayers(newPlayers);
-    setGameState("showing");
-    setWinners([]);
+  const handleReleaseHost = () => {
+    releaseHost();
   };
 
-  const handleNewGame = () => {
-    setPlayers([]);
-    setGameState("input");
-    setWinners([]);
+  const handleForceClaimHost = () => {
+    forceClaimHost();
   };
 
   const getButtonConfig = () => {
     switch (gameState) {
       case "input":
-        return { text: "Play", onClick: handlePlay };
+        return { text: "Play", onClick: startGame };
       case "showing":
-        return { text: "Reveal", onClick: handleReveal };
+        return { text: "Reveal", onClick: revealCards };
       case "revealed":
         if (winners.length > 1) {
-          return { text: "Tie Breaker", onClick: handleTieBreaker };
+          return { text: "Tie Breaker", onClick: startTiebreaker };
         }
-        return { text: "New Game", onClick: handleNewGame };
+        return { text: "New Game", onClick: newGame };
       case "tiebreaker":
-        return { text: "Reveal", onClick: handleReveal };
+        return { text: "Reveal", onClick: revealCards };
       default:
-        return { text: "Play", onClick: handlePlay };
+        return { text: "Play", onClick: startGame };
     }
   };
 
   const buttonConfig = getButtonConfig();
+
+  // Show name input if not joined
+  if (!hasJoined) {
+    return (
+      <Container
+        fluid
+        className="min-vh-100 d-flex align-items-center justify-content-center"
+        style={{
+          background: "#0000cc",
+          color: "#ffffff",
+        }}
+      >
+        <Row className="justify-content-center w-100">
+          <Col md={6} lg={4}>
+            <div
+              className="p-4"
+              style={{
+                backgroundColor: "#000066",
+                border: "2px solid #ffd700",
+                borderRadius: "6px",
+              }}
+            >
+              <h2
+                className="text-center mb-4"
+                style={{
+                  fontFamily: "monospace",
+                  fontWeight: "bold",
+                  color: "#ffd700",
+                  fontSize: "clamp(1.5rem, 4vw, 2rem)",
+                }}
+              >
+                POKER PICKER
+              </h2>
+              <Form.Group className="mb-3">
+                <Form.Label
+                  style={{
+                    fontFamily: "monospace",
+                    fontWeight: "bold",
+                    fontSize: "1rem",
+                    color: "#ffff00",
+                  }}
+                >
+                  Enter your name
+                </Form.Label>
+                <Form.Control
+                  type="text"
+                  placeholder="Your Name"
+                  value={playerName}
+                  onChange={(e) => handlePlayerNameChange(e.target.value)}
+                  onKeyPress={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleClaimHost();
+                    }
+                  }}
+                  style={{
+                    fontFamily: "monospace",
+                    fontSize: "1rem",
+                    backgroundColor: "#000066",
+                    color: "#ffffff",
+                    border: "2px solid #ffd700",
+                  }}
+                />
+              </Form.Group>
+              <div className="d-grid gap-2">
+                {!hasHost && (
+                  <Button
+                    onClick={handleClaimHost}
+                    disabled={!playerName.trim() || !isConnected}
+                    style={{
+                      backgroundColor: "#ff6600",
+                      color: "#ffffff",
+                      border: "2px solid #ffd700",
+                      fontWeight: "bold",
+                      fontSize: "1rem",
+                      fontFamily: "monospace",
+                    }}
+                  >
+                    {isConnected ? "BE THE HOST" : "CONNECTING..."}
+                  </Button>
+                )}
+                <Button
+                  onClick={handleJoinGame}
+                  disabled={!playerName.trim() || !isConnected}
+                  style={{
+                    backgroundColor: "#ffd700",
+                    color: "#000000",
+                    border: "2px solid #ffff00",
+                    fontWeight: "bold",
+                    fontSize: "1rem",
+                    fontFamily: "monospace",
+                  }}
+                >
+                  {isConnected ? "JOIN AS PARTICIPANT" : "CONNECTING..."}
+                </Button>
+              </div>
+            </div>
+          </Col>
+        </Row>
+      </Container>
+    );
+  }
 
   return (
     <Container
@@ -279,6 +250,24 @@ export function Picker() {
     >
       <Row className="justify-content-center">
         <Col lg={11} xl={10}>
+          {error && (
+            <Row className="mb-2">
+              <Col>
+                <div
+                  className="alert alert-danger"
+                  style={{
+                    fontFamily: "monospace",
+                    backgroundColor: "#ff0000",
+                    color: "#ffffff",
+                    border: "2px solid #ffff00",
+                  }}
+                >
+                  {error}
+                </div>
+              </Col>
+            </Row>
+          )}
+
           <Row className="mb-2 align-items-center gx-2 px-2">
             <Col xs={3} className="d-none d-md-block">
               <div className="d-flex align-items-center gap-2">
@@ -348,13 +337,26 @@ export function Picker() {
                   whiteSpace: "nowrap",
                 }}
               >
-                POKER PICKER
+                POKER PICKER{" "}
+                {isHost && (
+                  <Badge
+                    bg="warning"
+                    text="dark"
+                    style={{ fontSize: "0.5em", fontFamily: "monospace" }}
+                    role="button"
+                    onClick={handleReleaseHost}
+                    title="Click to release host role"
+                  >
+                    HOST ✕
+                  </Badge>
+                )}
               </h1>
             </Col>
             <Col xs={3} className="text-end pe-2">
               <Button
                 size="lg"
                 onClick={buttonConfig.onClick}
+                disabled={!isHost}
                 style={{
                   backgroundColor:
                     buttonConfig.text === "Tie Breaker" ? "#ff6600" : "#ffd700",
@@ -372,6 +374,8 @@ export function Picker() {
                   whiteSpace: "nowrap",
                   textShadow: "1px 1px 2px rgba(0, 0, 0, 0.5)",
                   minWidth: "clamp(85px, 22vw, 150px)",
+                  opacity: !isHost ? 0.5 : 1,
+                  cursor: !isHost ? "not-allowed" : "pointer",
                 }}
               >
                 {buttonConfig.text.toUpperCase()}
@@ -379,40 +383,46 @@ export function Picker() {
             </Col>
           </Row>
 
-          {gameState === "input" && (
+          {gameState === "input" && isHost && (
             <Row className="mb-3">
-              <Col md={{ span: 1, offset: 1 }} lg={{ span: 10, offset: 1 }}>
-                <Form.Group className="mb-3">
-                  <Form.Label
+              <Col md={{ span: 10, offset: 1 }}>
+                <div
+                  className="p-3 mb-3"
+                  style={{
+                    backgroundColor: "#000066",
+                    border: "2px solid #ffd700",
+                    borderRadius: "6px",
+                  }}
+                >
+                  <h3
                     style={{
                       fontFamily: "monospace",
                       fontWeight: "bold",
-                      fontSize: "clamp(0.9rem, 2vw, 1.1rem)",
+                      fontSize: "1.2rem",
+                      color: "#ffd700",
+                      marginBottom: "1rem",
+                    }}
+                  >
+                    Participants ({participants.length})
+                  </h3>
+                  <div
+                    style={{
+                      fontFamily: "monospace",
+                      fontSize: "1rem",
                       color: "#ffff00",
                     }}
                   >
-                    Enter player names (comma separated)
-                  </Form.Label>
-                  <Form.Control
-                    type="text"
-                    placeholder="Alice, Bob, Charlie"
-                    value={playerNames}
-                    onChange={(e) => handlePlayerNamesChange(e.target.value)}
-                    onKeyPress={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        handlePlay();
-                      }
-                    }}
-                    style={{
-                      fontFamily: "monospace",
-                      fontSize: "clamp(0.85rem, 1.8vw, 1rem)",
-                      backgroundColor: "#000066",
-                      color: "#ffffff",
-                      border: "2px solid #ffd700",
-                    }}
-                  />
-                </Form.Group>
+                    {participants.length === 0 ? (
+                      <p>Waiting for players to join...</p>
+                    ) : (
+                      <ul>
+                        {participants.map((p) => (
+                          <li key={p.id}>{p.name}</li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                </div>
 
                 <Row className="mb-3">
                   <Col md={6}>
@@ -431,7 +441,7 @@ export function Picker() {
                       id="deck-independent"
                       name="deckType"
                       label="Each player has an independent deck"
-                      checked={deckType === "independent"}
+                      checked={config.deckType === "independent"}
                       onChange={() => handleDeckTypeChange("independent")}
                       style={{
                         fontFamily: "monospace",
@@ -444,7 +454,7 @@ export function Picker() {
                       id="deck-shared"
                       name="deckType"
                       label="All players draw from shared deck(s)"
-                      checked={deckType === "shared"}
+                      checked={config.deckType === "shared"}
                       onChange={() => handleDeckTypeChange("shared")}
                       style={{
                         fontFamily: "monospace",
@@ -470,7 +480,7 @@ export function Picker() {
                       id="jokers-no"
                       name="jokerMode"
                       label="No jokers"
-                      checked={!jokerMode}
+                      checked={!config.jokerMode}
                       onChange={() => handleJokerModeChange(false)}
                       style={{
                         fontFamily: "monospace",
@@ -483,7 +493,7 @@ export function Picker() {
                       id="jokers-yes"
                       name="jokerMode"
                       label="Two jokers per deck"
-                      checked={jokerMode}
+                      checked={config.jokerMode}
                       onChange={() => handleJokerModeChange(true)}
                       style={{
                         fontFamily: "monospace",
@@ -509,7 +519,7 @@ export function Picker() {
                       id="hidden-1"
                       name="hiddenCards"
                       label="One card"
-                      checked={hiddenCardsCount === 1}
+                      checked={config.hiddenCardsCount === 1}
                       onChange={() => handleHiddenCardsCountChange(1)}
                       style={{
                         fontFamily: "monospace",
@@ -522,7 +532,7 @@ export function Picker() {
                       id="hidden-2"
                       name="hiddenCards"
                       label="Two cards"
-                      checked={hiddenCardsCount === 2}
+                      checked={config.hiddenCardsCount === 2}
                       onChange={() => handleHiddenCardsCountChange(2)}
                       style={{
                         fontFamily: "monospace",
@@ -564,7 +574,8 @@ export function Picker() {
                   >
                     <li>
                       Click PLAY to deal 5 cards to each player (
-                      {5 - hiddenCardsCount} shown, {hiddenCardsCount} hidden)
+                      {5 - config.hiddenCardsCount} shown,{" "}
+                      {config.hiddenCardsCount} hidden)
                     </li>
                     <li>
                       Click REVEAL to show all cards and determine the winner
@@ -572,6 +583,344 @@ export function Picker() {
                     <li>
                       Highest poker hand wins! If tied, click TIE BREAKER to
                       play again
+                    </li>
+                  </ul>
+
+                  <h3
+                    style={{
+                      fontFamily: "monospace",
+                      fontWeight: "bold",
+                      fontSize: "clamp(1rem, 2vw, 1.2rem)",
+                      color: "#ffd700",
+                      marginBottom: "0.75rem",
+                      marginTop: "1rem",
+                    }}
+                  >
+                    Poker Hand Rankings (Highest to Lowest)
+                  </h3>
+                  <table
+                    style={{
+                      width: "100%",
+                      fontFamily: "monospace",
+                      fontSize: "clamp(0.7rem, 1.5vw, 0.85rem)",
+                      color: "#ffff00",
+                      borderCollapse: "collapse",
+                    }}
+                  >
+                    <tbody>
+                      <tr style={{ borderBottom: "1px solid #ffd700" }}>
+                        <td style={{ padding: "0.5rem", fontWeight: "bold" }}>
+                          1. Five of a Kind
+                        </td>
+                        <td style={{ padding: "0.5rem" }}>
+                          Five cards of the same rank (requires jokers)
+                        </td>
+                      </tr>
+                      <tr style={{ borderBottom: "1px solid #ffd700" }}>
+                        <td style={{ padding: "0.5rem", fontWeight: "bold" }}>
+                          2. Royal Flush
+                        </td>
+                        <td style={{ padding: "0.5rem" }}>
+                          A, K, Q, J, 10 of the same suit
+                        </td>
+                      </tr>
+                      <tr style={{ borderBottom: "1px solid #ffd700" }}>
+                        <td style={{ padding: "0.5rem", fontWeight: "bold" }}>
+                          3. Straight Flush
+                        </td>
+                        <td style={{ padding: "0.5rem" }}>
+                          Five sequential cards of the same suit
+                        </td>
+                      </tr>
+                      <tr style={{ borderBottom: "1px solid #ffd700" }}>
+                        <td style={{ padding: "0.5rem", fontWeight: "bold" }}>
+                          4. Four of a Kind
+                        </td>
+                        <td style={{ padding: "0.5rem" }}>
+                          Four cards of the same rank
+                        </td>
+                      </tr>
+                      <tr style={{ borderBottom: "1px solid #ffd700" }}>
+                        <td style={{ padding: "0.5rem", fontWeight: "bold" }}>
+                          5. Full House
+                        </td>
+                        <td style={{ padding: "0.5rem" }}>
+                          Three of a kind plus a pair
+                        </td>
+                      </tr>
+                      <tr style={{ borderBottom: "1px solid #ffd700" }}>
+                        <td style={{ padding: "0.5rem", fontWeight: "bold" }}>
+                          6. Flush
+                        </td>
+                        <td style={{ padding: "0.5rem" }}>
+                          Five cards of the same suit
+                        </td>
+                      </tr>
+                      <tr style={{ borderBottom: "1px solid #ffd700" }}>
+                        <td style={{ padding: "0.5rem", fontWeight: "bold" }}>
+                          7. Straight
+                        </td>
+                        <td style={{ padding: "0.5rem" }}>
+                          Five sequential cards of any suit
+                        </td>
+                      </tr>
+                      <tr style={{ borderBottom: "1px solid #ffd700" }}>
+                        <td style={{ padding: "0.5rem", fontWeight: "bold" }}>
+                          8. Three of a Kind
+                        </td>
+                        <td style={{ padding: "0.5rem" }}>
+                          Three cards of the same rank
+                        </td>
+                      </tr>
+                      <tr style={{ borderBottom: "1px solid #ffd700" }}>
+                        <td style={{ padding: "0.5rem", fontWeight: "bold" }}>
+                          9. Two Pair
+                        </td>
+                        <td style={{ padding: "0.5rem" }}>
+                          Two different pairs
+                        </td>
+                      </tr>
+                      <tr style={{ borderBottom: "1px solid #ffd700" }}>
+                        <td style={{ padding: "0.5rem", fontWeight: "bold" }}>
+                          10. One Pair
+                        </td>
+                        <td style={{ padding: "0.5rem" }}>
+                          Two cards of the same rank
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style={{ padding: "0.5rem", fontWeight: "bold" }}>
+                          11. High Card
+                        </td>
+                        <td style={{ padding: "0.5rem" }}>No matching cards</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </Col>
+            </Row>
+          )}
+
+          {gameState === "input" && !isHost && (
+            <Row className="mb-3">
+              <Col md={{ span: 10, offset: 1 }}>
+                <div
+                  className="p-4 text-center mb-3"
+                  style={{
+                    backgroundColor: "#000066",
+                    border: "2px solid #ffd700",
+                    borderRadius: "6px",
+                  }}
+                >
+                  <h3
+                    style={{
+                      fontFamily: "monospace",
+                      fontWeight: "bold",
+                      fontSize: "1.5rem",
+                      color: "#ffd700",
+                      marginBottom: "1rem",
+                    }}
+                  >
+                    Waiting for host to start the game...
+                  </h3>
+                  <p
+                    style={{
+                      fontFamily: "monospace",
+                      fontSize: "1rem",
+                      color: "#ffff00",
+                      marginBottom: "1rem",
+                    }}
+                  >
+                    Participants ({participants.length}):{" "}
+                    {participants.map((p) => p.name).join(", ")}
+                  </p>
+                  <Button
+                    onClick={handleForceClaimHost}
+                    style={{
+                      backgroundColor: "#ff6600",
+                      color: "#ffffff",
+                      border: "2px solid #ffd700",
+                      fontWeight: "bold",
+                      fontSize: "0.9rem",
+                      fontFamily: "monospace",
+                      padding: "0.5rem 1rem",
+                    }}
+                  >
+                    CLAIM HOST (Take Over)
+                  </Button>
+                  <p
+                    style={{
+                      fontFamily: "monospace",
+                      fontSize: "0.75rem",
+                      color: "#ffff00",
+                      marginTop: "0.5rem",
+                      fontStyle: "italic",
+                    }}
+                  >
+                    Use this if the host is inactive or has left
+                  </p>
+                </div>
+
+                <Row className="mb-3">
+                  <Col md={6}>
+                    <Form.Label
+                      style={{
+                        fontFamily: "monospace",
+                        fontWeight: "bold",
+                        fontSize: "clamp(0.9rem, 2vw, 1.1rem)",
+                        color: "#ffff00",
+                      }}
+                    >
+                      Deck Type
+                    </Form.Label>
+                    <Form.Check
+                      type="radio"
+                      id="deck-independent-view"
+                      name="deckTypeView"
+                      label="Each player has an independent deck"
+                      checked={config.deckType === "independent"}
+                      disabled
+                      style={{
+                        fontFamily: "monospace",
+                        fontSize: "clamp(0.85rem, 1.8vw, 1rem)",
+                        color: "#ffff00",
+                      }}
+                    />
+                    <Form.Check
+                      type="radio"
+                      id="deck-shared-view"
+                      name="deckTypeView"
+                      label="All players draw from shared deck(s)"
+                      checked={config.deckType === "shared"}
+                      disabled
+                      style={{
+                        fontFamily: "monospace",
+                        fontSize: "clamp(0.85rem, 1.8vw, 1rem)",
+                        color: "#ffff00",
+                      }}
+                    />
+                  </Col>
+
+                  <Col md={3}>
+                    <Form.Label
+                      style={{
+                        fontFamily: "monospace",
+                        fontWeight: "bold",
+                        fontSize: "clamp(0.9rem, 2vw, 1.1rem)",
+                        color: "#ffff00",
+                      }}
+                    >
+                      Jokers
+                    </Form.Label>
+                    <Form.Check
+                      type="radio"
+                      id="jokers-no-view"
+                      name="jokerModeView"
+                      label="No jokers"
+                      checked={!config.jokerMode}
+                      disabled
+                      style={{
+                        fontFamily: "monospace",
+                        fontSize: "clamp(0.85rem, 1.8vw, 1rem)",
+                        color: "#ffff00",
+                      }}
+                    />
+                    <Form.Check
+                      type="radio"
+                      id="jokers-yes-view"
+                      name="jokerModeView"
+                      label="Two jokers per deck"
+                      checked={config.jokerMode}
+                      disabled
+                      style={{
+                        fontFamily: "monospace",
+                        fontSize: "clamp(0.85rem, 1.8vw, 1rem)",
+                        color: "#ffff00",
+                      }}
+                    />
+                  </Col>
+
+                  <Col md={3}>
+                    <Form.Label
+                      style={{
+                        fontFamily: "monospace",
+                        fontWeight: "bold",
+                        fontSize: "clamp(0.9rem, 2vw, 1.1rem)",
+                        color: "#ffff00",
+                      }}
+                    >
+                      Hidden Cards
+                    </Form.Label>
+                    <Form.Check
+                      type="radio"
+                      id="hidden-1-view"
+                      name="hiddenCardsView"
+                      label="One card"
+                      checked={config.hiddenCardsCount === 1}
+                      disabled
+                      style={{
+                        fontFamily: "monospace",
+                        fontSize: "clamp(0.85rem, 1.8vw, 1rem)",
+                        color: "#ffff00",
+                      }}
+                    />
+                    <Form.Check
+                      type="radio"
+                      id="hidden-2-view"
+                      name="hiddenCardsView"
+                      label="Two cards"
+                      checked={config.hiddenCardsCount === 2}
+                      disabled
+                      style={{
+                        fontFamily: "monospace",
+                        fontSize: "clamp(0.85rem, 1.8vw, 1rem)",
+                        color: "#ffff00",
+                      }}
+                    />
+                  </Col>
+                </Row>
+
+                <div
+                  className="mt-4"
+                  style={{
+                    backgroundColor: "#000066",
+                    border: "2px solid #ffd700",
+                    borderRadius: "6px",
+                    padding: "1rem",
+                  }}
+                >
+                  <h3
+                    style={{
+                      fontFamily: "monospace",
+                      fontWeight: "bold",
+                      fontSize: "clamp(1rem, 2vw, 1.2rem)",
+                      color: "#ffd700",
+                      marginBottom: "0.75rem",
+                    }}
+                  >
+                    How to Play
+                  </h3>
+                  <ul
+                    style={{
+                      fontFamily: "monospace",
+                      fontSize: "clamp(0.75rem, 1.6vw, 0.9rem)",
+                      color: "#ffff00",
+                      marginBottom: "1rem",
+                      paddingLeft: "1.5rem",
+                    }}
+                  >
+                    <li>
+                      Host will click PLAY to deal 5 cards to each player (
+                      {5 - config.hiddenCardsCount} shown,{" "}
+                      {config.hiddenCardsCount} hidden)
+                    </li>
+                    <li>
+                      Host will click REVEAL to show all cards and determine the
+                      winner
+                    </li>
+                    <li>
+                      Highest poker hand wins! If tied, host will click TIE
+                      BREAKER to play again
                     </li>
                   </ul>
 
@@ -705,7 +1054,6 @@ export function Picker() {
                   // Calculate proper rank accounting for ties
                   let rank = 1;
                   if (gameState === "revealed" && player.handEvaluation) {
-                    // Count how many players have a better hand
                     for (let i = 0; i < playerIndex; i++) {
                       const comparison = comparePokerHands(
                         players[i].handEvaluation!,
@@ -718,6 +1066,8 @@ export function Picker() {
                   } else {
                     rank = playerIndex + 1;
                   }
+
+                  const isCurrentPlayer = player.id === playerId;
 
                   return (
                     <div
@@ -732,7 +1082,7 @@ export function Picker() {
                         className="text-center p-2"
                         style={{
                           backgroundColor: "#000066",
-                          border: "2px solid #ffd700",
+                          border: `2px solid ${isCurrentPlayer ? "#00ff00" : "#ffd700"}`,
                           borderRadius: "6px",
                           boxShadow: "0 2px 4px rgba(0, 0, 0, 0.5)",
                           position: "relative",
@@ -784,7 +1134,7 @@ export function Picker() {
                           style={{
                             fontFamily: "monospace",
                             fontWeight: "bold",
-                            color: "#ff6600",
+                            color: isCurrentPlayer ? "#00ff00" : "#ff6600",
                             fontSize: "clamp(1rem, 2.5vw, 1.3rem)",
                             WebkitTextStroke:
                               "clamp(0.5px, 0.15vw, 0.8px) #ffff00",
@@ -797,6 +1147,7 @@ export function Picker() {
                           }}
                         >
                           {player.name.toUpperCase()}
+                          {isCurrentPlayer && " (YOU)"}
                         </h3>
                         <div
                           className="mb-1"
@@ -823,7 +1174,7 @@ export function Picker() {
                             <PlayingCard
                               key={cardIndex}
                               card={
-                                cardIndex >= 5 - hiddenCardsCount &&
+                                cardIndex < config.hiddenCardsCount &&
                                 gameState === "showing"
                                   ? null
                                   : card

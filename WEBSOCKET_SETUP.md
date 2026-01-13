@@ -61,6 +61,22 @@ Railway offers a generous free tier and is perfect for WebSocket servers.
 
 1. **Sign up at [Railway](https://railway.app/)**
 
+Add this config to the repo root: `railway.json`:
+
+```json
+{
+  "build": {
+    "builder": "NIXPACKS",
+    "buildCommand": "cd server && npm install && npm run build"
+  },
+  "deploy": {
+    "startCommand": "cd server && npm start",
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 10
+  }
+}
+```
+
 2. **Create a new project**
 
    - Click "New Project"
@@ -75,7 +91,6 @@ Railway offers a generous free tier and is perfect for WebSocket servers.
 4. **Set environment variables in Railway**
 
    ```
-   PORT=3001
    CLIENT_URL=https://your-vercel-app.vercel.app
    ```
 
@@ -88,7 +103,7 @@ Railway offers a generous free tier and is perfect for WebSocket servers.
    - Go to your Vercel project settings
    - Add environment variable:
      ```
-     VITE_SOCKET_URL=https://your-app.up.railway.app
+     VITE_SOCKET_URL=video-poker-production-f9aa.up.railway.app
      ```
    - Redeploy your Vercel app
 

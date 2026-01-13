@@ -1,5 +1,4 @@
 import { Card as CardType } from "../types/game";
-import { Card } from "react-bootstrap";
 
 interface PlayingCardProps {
   card: CardType | null;
@@ -26,20 +25,20 @@ export const PlayingCard = ({
   shouldDiscard = false,
   hideLabel = false,
 }: PlayingCardProps) => {
-  const getCardImage = (card: CardType | null): string => {
+  const getCardId = (card: CardType | null): string => {
     if (!card) {
-      return "/svg/X.svg";
+      return "X";
     }
 
-    if (card === "O1") return "/svg/O1.svg";
-    if (card === "O2") return "/svg/O2.svg";
+    if (card === "O1") return "O1";
+    if (card === "O2") return "O2";
 
-    // Convert card format like "Ah" to correct SVG filename
-    // All SVG files use uppercase: AC.svg, KD.svg, 2H.svg, 10C.svg
+    // Convert card format like "Ah" to correct ID
+    // All IDs use uppercase: AC, KD, 2H, 10C
     const rank = card.slice(0, -1);
     const suit = card.slice(-1).toUpperCase();
 
-    return `/svg/${rank}${suit}.svg`;
+    return `${rank}${suit}`;
   };
 
   const handleImageClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -89,7 +88,7 @@ export const PlayingCard = ({
             {isSelected ? "SELECTED" : ""}
           </div>
         )}
-        <Card
+        <div
           style={{
             width: "100%",
             aspectRatio: "5 / 7",
@@ -123,17 +122,15 @@ export const PlayingCard = ({
             }
           }}
         >
-          <Card.Img
-            variant="top"
-            src={getCardImage(card)}
-            alt={card || "hidden"}
-            style={{
-              width: "100%",
-              height: "100%",
-              objectFit: "fill",
-            }}
-          />
-        </Card>
+          <svg
+            width="100%"
+            height="100%"
+            style={{ display: "block" }}
+            aria-label={card || "hidden"}
+          >
+            <use href={`#card-${getCardId(card)}`} />
+          </svg>
+        </div>
       </div>
     </>
   );

@@ -9,6 +9,7 @@ export interface Player {
   cards: Card[];
   deck: Card[];
   handEvaluation: PokerHandEvaluation | null;
+  selectedCardIndex?: number;
 }
 
 export type GameState = "input" | "showing" | "revealed" | "tiebreaker";
@@ -31,6 +32,7 @@ interface UsePickerSocketReturn {
   players: Player[];
   winners: Player[];
   config: GameConfig;
+  hasDrawn: boolean;
   participants: Array<{ id: string; name: string }>;
   claimHost: (playerName: string) => void;
   releaseHost: () => void;
@@ -38,6 +40,8 @@ interface UsePickerSocketReturn {
   joinGame: (playerName: string) => void;
   updateConfig: (config: GameConfig) => void;
   startGame: () => void;
+  selectCard: (cardIndex: number) => void;
+  drawCards: () => void;
   revealCards: () => void;
   startTiebreaker: () => void;
   newGame: () => void;
@@ -60,6 +64,7 @@ export function usePickerSocket(): UsePickerSocketReturn {
     jokerMode: false,
     hiddenCardsCount: 2,
   });
+  const [hasDrawn, setHasDrawn] = useState(false);
   const [participants, setParticipants] = useState<
     Array<{ id: string; name: string }>
   >([]);
@@ -98,6 +103,7 @@ export function usePickerSocket(): UsePickerSocketReturn {
       setPlayers(data.players);
       setWinners(data.winners);
       setConfig(data.config);
+      setHasDrawn(data.hasDrawn);
     });
 
     newSocket.on("participants-update", (data) => {
@@ -181,6 +187,21 @@ export function usePickerSocket(): UsePickerSocketReturn {
     }
   }, [socket, isHost]);
 
+  const selectCard = useCallback(
+    (cardIndex: number) => {
+      if (socket) {
+        socket.emit("select-card", cardIndex);
+      }
+    },
+    [socket]
+  );
+
+  const drawCards = useCallback(() => {
+    if (socket && isHost) {
+      socket.emit("draw-cards");
+    }
+  }, [socket, isHost]);
+
   const revealCards = useCallback(() => {
     if (socket && isHost) {
       socket.emit("reveal-cards");
@@ -209,6 +230,7 @@ export function usePickerSocket(): UsePickerSocketReturn {
     players,
     winners,
     config,
+    hasDrawn,
     participants,
     claimHost,
     releaseHost,
@@ -216,6 +238,8 @@ export function usePickerSocket(): UsePickerSocketReturn {
     joinGame,
     updateConfig,
     startGame,
+    selectCard,
+    drawCards,
     revealCards,
     startTiebreaker,
     newGame,

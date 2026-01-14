@@ -36,6 +36,7 @@ const gameRoom: GameRoom = {
     jokerMode: false,
     hiddenCardsCount: 2,
   },
+  hasDrawn: false,
 };
 
 function broadcastGameState() {
@@ -44,6 +45,7 @@ function broadcastGameState() {
     players: gameRoom.players,
     winners: gameRoom.winners,
     config: gameRoom.config,
+    hasDrawn: gameRoom.hasDrawn,
   });
 }
 
@@ -75,6 +77,7 @@ io.on("connection", (socket: Socket) => {
     players: gameRoom.players,
     winners: gameRoom.winners,
     config: gameRoom.config,
+    hasDrawn: gameRoom.hasDrawn,
   });
 
   socket.on("claim-host", (playerName: string) => {
@@ -127,6 +130,7 @@ io.on("connection", (socket: Socket) => {
     gameRoom.players = [];
     gameRoom.gameState = "input";
     gameRoom.winners = [];
+    gameRoom.hasDrawn = false;
     console.log("Host released - game reset");
 
     // Broadcast to all that there is no host
@@ -220,7 +224,8 @@ io.on("connection", (socket: Socket) => {
     const { deckType, jokerMode } = gameRoom.config;
 
     if (deckType === "shared") {
-      const cardsNeeded = participants.length * 5;
+      // Account for initial deal (5 cards) + up to 1 discard per player
+      const cardsNeeded = participants.length * 6;
       const cardsPerDeck = jokerMode ? 54 : 52;
       const jokersPerDeck = jokerMode ? 2 : 0;
       const decksNeeded = Math.ceil(cardsNeeded / cardsPerDeck);
@@ -232,6 +237,7 @@ io.on("connection", (socket: Socket) => {
 
       const shuffledDeck = await shuffleDeck(combinedDeck);
 
+      // Deal cards and preserve the remaining shared deck
       newPlayers = participants.map((participant, index) => {
         const startIdx = index * 5;
         const cards = shuffledDeck.slice(startIdx, startIdx + 5);
@@ -240,8 +246,12 @@ io.on("connection", (socket: Socket) => {
           cards,
           deck: [],
           handEvaluation: null,
+          selectedCardIndex: undefined,
         };
       });
+
+      // Store remaining cards in shared deck for drawing
+      gameRoom.sharedDeck = shuffledDeck.slice(participants.length * 5);
     } else {
       const jokersPerDeck = jokerMode ? 2 : 0;
       newPlayers = await Promise.all(
@@ -256,15 +266,107 @@ io.on("connection", (socket: Socket) => {
             cards,
             deck: remainingDeck,
             handEvaluation: null,
+            selectedCardIndex: undefined,
           };
         })
       );
+      // Clear shared deck for independent mode
+      gameRoom.sharedDeck = undefined;
     }
 
     // Sort players alphabetically by name
     gameRoom.players = newPlayers.sort((a, b) => a.name.localeCompare(b.name));
     gameRoom.gameState = "showing";
     gameRoom.winners = [];
+    gameRoom.hasDrawn = false;
+
+    broadcastGameState();
+  });
+
+  socket.on("select-card", (cardIndex: number) => {
+    // Find the player in the current game
+    const playerIndex = gameRoom.players.findIndex((p) => p.id === socket.id);
+    if (playerIndex === -1) {
+      socket.emit("error", "You are not in the current game");
+      return;
+    }
+
+    // Don't allow selection after draw has happened
+    if (gameRoom.hasDrawn) {
+      socket.emit("error", "Cards have already been drawn");
+      return;
+    }
+
+    // Validate card index (must be a face-up card)
+    const { hiddenCardsCount } = gameRoom.config;
+    if (cardIndex < hiddenCardsCount || cardIndex >= 5) {
+      socket.emit("error", "You can only select face-up cards");
+      return;
+    }
+
+    // Toggle selection: if already selected, unselect it
+    const currentSelection = gameRoom.players[playerIndex].selectedCardIndex;
+    if (currentSelection === cardIndex) {
+      gameRoom.players[playerIndex].selectedCardIndex = undefined;
+    } else {
+      gameRoom.players[playerIndex].selectedCardIndex = cardIndex;
+    }
+
+    broadcastGameState();
+  });
+
+  socket.on("draw-cards", () => {
+    // Only host can trigger draw
+    if (socket.id !== gameRoom.hostId) {
+      socket.emit("error", "Only the host can draw cards");
+      return;
+    }
+
+    const { deckType } = gameRoom.config;
+
+    // Replace selected cards for each player
+    gameRoom.players = gameRoom.players.map((player) => {
+      if (player.selectedCardIndex === undefined) {
+        // No card selected, keep hand as-is
+        return { ...player, selectedCardIndex: undefined };
+      }
+
+      let newCard: Card;
+      let updatedDeck: Card[];
+
+      if (deckType === "shared") {
+        // Draw from shared deck
+        if (!gameRoom.sharedDeck || gameRoom.sharedDeck.length === 0) {
+          console.error("Shared deck is empty!");
+          return { ...player, selectedCardIndex: undefined };
+        }
+        newCard = gameRoom.sharedDeck[0];
+        gameRoom.sharedDeck = gameRoom.sharedDeck.slice(1);
+        updatedDeck = player.deck;
+      } else {
+        // Draw from player's individual deck
+        if (player.deck.length === 0) {
+          console.error(`Player ${player.name} has no cards left in deck!`);
+          return { ...player, selectedCardIndex: undefined };
+        }
+        newCard = player.deck[0];
+        updatedDeck = player.deck.slice(1);
+      }
+
+      // Replace the selected card
+      const newCards = [...player.cards];
+      newCards[player.selectedCardIndex] = newCard;
+
+      return {
+        ...player,
+        cards: newCards,
+        deck: updatedDeck,
+        selectedCardIndex: undefined, // Clear selection after draw
+      };
+    });
+
+    // Mark that draw has been completed
+    gameRoom.hasDrawn = true;
 
     broadcastGameState();
   });
@@ -344,6 +446,7 @@ io.on("connection", (socket: Socket) => {
     gameRoom.players = newPlayers;
     gameRoom.gameState = "showing";
     gameRoom.winners = [];
+    gameRoom.hasDrawn = false;
 
     broadcastGameState();
   });
@@ -358,6 +461,7 @@ io.on("connection", (socket: Socket) => {
     gameRoom.players = [];
     gameRoom.gameState = "input";
     gameRoom.winners = [];
+    gameRoom.hasDrawn = false;
 
     broadcastGameState();
   });

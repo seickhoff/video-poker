@@ -20,6 +20,7 @@ export function Picker() {
     players,
     winners,
     config,
+    hasDrawn,
     participants,
     claimHost,
     releaseHost,
@@ -27,6 +28,8 @@ export function Picker() {
     joinGame,
     updateConfig,
     startGame,
+    selectCard,
+    drawCards,
     revealCards,
     startTiebreaker,
     newGame,
@@ -122,7 +125,12 @@ export function Picker() {
       case "input":
         return { text: "Play", onClick: startGame };
       case "showing":
-        return { text: "Reveal", onClick: revealCards };
+        // If draw has already happened, show "Reveal"
+        if (hasDrawn) {
+          return { text: "Reveal", onClick: revealCards };
+        }
+        // Before draw, always show "Discard" button
+        return { text: "Discard", onClick: drawCards };
       case "revealed":
         if (winners.length > 1) {
           return { text: "Tie Breaker", onClick: startTiebreaker };
@@ -387,65 +395,111 @@ export function Picker() {
             <Row className="mb-3">
               <Col md={{ span: 10, offset: 1 }}>
                 <div
-                  className="p-3 mb-3"
+                  className="mb-3"
+                  style={{
+                    textAlign: "center",
+                    fontFamily: "monospace",
+                    fontSize: "clamp(0.8rem, 1.8vw, 1rem)",
+                    color: "#ffff00",
+                  }}
+                >
+                  {participants.length === 0 ? (
+                    <div
+                      style={{
+                        backgroundColor: "#000066",
+                        border: "2px solid #ffd700",
+                        borderRadius: "6px",
+                        padding: "1rem",
+                      }}
+                    >
+                      Waiting for players to join...
+                    </div>
+                  ) : (
+                    <div>
+                      <span style={{ fontWeight: "bold", color: "#ffd700" }}>
+                        Participants ({participants.length}):{" "}
+                      </span>
+                      {participants.map((p) => p.name).join(", ")}
+                    </div>
+                  )}
+                </div>
+
+                <div
+                  className="mb-3"
                   style={{
                     backgroundColor: "#000066",
                     border: "2px solid #ffd700",
                     borderRadius: "6px",
+                    padding: "0.75rem",
                   }}
                 >
                   <h3
                     style={{
                       fontFamily: "monospace",
                       fontWeight: "bold",
-                      fontSize: "1.2rem",
+                      fontSize: "clamp(0.85rem, 2vw, 1rem)",
                       color: "#ffd700",
-                      marginBottom: "1rem",
+                      marginBottom: "0.5rem",
                     }}
                   >
-                    Participants ({participants.length})
+                    How to Play (Host)
                   </h3>
-                  <div
+                  <ul
                     style={{
                       fontFamily: "monospace",
-                      fontSize: "1rem",
+                      fontSize: "clamp(0.7rem, 1.5vw, 0.85rem)",
                       color: "#ffff00",
+                      marginBottom: 0,
+                      paddingLeft: "1.25rem",
                     }}
                   >
-                    {participants.length === 0 ? (
-                      <p>Waiting for players to join...</p>
-                    ) : (
-                      <ul>
-                        {participants.map((p) => (
-                          <li key={p.id}>{p.name}</li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
+                    <li>
+                      Click PLAY to deal 5 cards to each player (
+                      {5 - config.hiddenCardsCount} shown,{" "}
+                      {config.hiddenCardsCount} hidden)
+                    </li>
+                    <li>
+                      Players can optionally select one face-up card to discard
+                    </li>
+                    <li>
+                      Click DISCARD to replace all selected cards with new ones,
+                      or skip directly to REVEAL
+                    </li>
+                    <li>Click REVEAL to show all cards and determine winner</li>
+                    <li>Highest poker hand wins! If tied, click TIE BREAKER</li>
+                  </ul>
                 </div>
 
                 <Row className="mb-3">
-                  <Col md={6}>
+                  <Col xs={4} md={6}>
                     <Form.Label
                       style={{
                         fontFamily: "monospace",
                         fontWeight: "bold",
-                        fontSize: "clamp(0.9rem, 2vw, 1.1rem)",
+                        fontSize: "clamp(0.75rem, 2vw, 1.1rem)",
                         color: "#ffff00",
                       }}
                     >
-                      Deck Type
+                      <span className="d-md-none">Deck</span>
+                      <span className="d-none d-md-inline">Deck Type</span>
                     </Form.Label>
                     <Form.Check
                       type="radio"
                       id="deck-independent"
                       name="deckType"
-                      label="Each player has an independent deck"
+                      label={
+                        <>
+                          <span className="d-md-none">Individual</span>
+                          <span className="d-none d-md-inline">
+                            Each player has an independent deck
+                          </span>
+                        </>
+                      }
                       checked={config.deckType === "independent"}
                       onChange={() => handleDeckTypeChange("independent")}
                       style={{
                         fontFamily: "monospace",
-                        fontSize: "clamp(0.85rem, 1.8vw, 1rem)",
+                        fontSize: "clamp(0.7rem, 1.8vw, 1rem)",
                         color: "#ffff00",
                       }}
                     />
@@ -453,23 +507,30 @@ export function Picker() {
                       type="radio"
                       id="deck-shared"
                       name="deckType"
-                      label="All players draw from shared deck(s)"
+                      label={
+                        <>
+                          <span className="d-md-none">Shared</span>
+                          <span className="d-none d-md-inline">
+                            All players draw from shared deck(s)
+                          </span>
+                        </>
+                      }
                       checked={config.deckType === "shared"}
                       onChange={() => handleDeckTypeChange("shared")}
                       style={{
                         fontFamily: "monospace",
-                        fontSize: "clamp(0.85rem, 1.8vw, 1rem)",
+                        fontSize: "clamp(0.7rem, 1.8vw, 1rem)",
                         color: "#ffff00",
                       }}
                     />
                   </Col>
 
-                  <Col md={3}>
+                  <Col xs={4} md={3}>
                     <Form.Label
                       style={{
                         fontFamily: "monospace",
                         fontWeight: "bold",
-                        fontSize: "clamp(0.9rem, 2vw, 1.1rem)",
+                        fontSize: "clamp(0.75rem, 2vw, 1.1rem)",
                         color: "#ffff00",
                       }}
                     >
@@ -479,12 +540,17 @@ export function Picker() {
                       type="radio"
                       id="jokers-no"
                       name="jokerMode"
-                      label="No jokers"
+                      label={
+                        <>
+                          <span className="d-md-none">None</span>
+                          <span className="d-none d-md-inline">No jokers</span>
+                        </>
+                      }
                       checked={!config.jokerMode}
                       onChange={() => handleJokerModeChange(false)}
                       style={{
                         fontFamily: "monospace",
-                        fontSize: "clamp(0.85rem, 1.8vw, 1rem)",
+                        fontSize: "clamp(0.7rem, 1.8vw, 1rem)",
                         color: "#ffff00",
                       }}
                     />
@@ -492,38 +558,51 @@ export function Picker() {
                       type="radio"
                       id="jokers-yes"
                       name="jokerMode"
-                      label="Two jokers per deck"
+                      label={
+                        <>
+                          <span className="d-md-none">Two</span>
+                          <span className="d-none d-md-inline">
+                            Two jokers per deck
+                          </span>
+                        </>
+                      }
                       checked={config.jokerMode}
                       onChange={() => handleJokerModeChange(true)}
                       style={{
                         fontFamily: "monospace",
-                        fontSize: "clamp(0.85rem, 1.8vw, 1rem)",
+                        fontSize: "clamp(0.7rem, 1.8vw, 1rem)",
                         color: "#ffff00",
                       }}
                     />
                   </Col>
 
-                  <Col md={3}>
+                  <Col xs={4} md={3}>
                     <Form.Label
                       style={{
                         fontFamily: "monospace",
                         fontWeight: "bold",
-                        fontSize: "clamp(0.9rem, 2vw, 1.1rem)",
+                        fontSize: "clamp(0.75rem, 2vw, 1.1rem)",
                         color: "#ffff00",
                       }}
                     >
-                      Hidden Cards
+                      <span className="d-md-none">Hidden</span>
+                      <span className="d-none d-md-inline">Hidden Cards</span>
                     </Form.Label>
                     <Form.Check
                       type="radio"
                       id="hidden-1"
                       name="hiddenCards"
-                      label="One card"
+                      label={
+                        <>
+                          <span className="d-md-none">One</span>
+                          <span className="d-none d-md-inline">One card</span>
+                        </>
+                      }
                       checked={config.hiddenCardsCount === 1}
                       onChange={() => handleHiddenCardsCountChange(1)}
                       style={{
                         fontFamily: "monospace",
-                        fontSize: "clamp(0.85rem, 1.8vw, 1rem)",
+                        fontSize: "clamp(0.7rem, 1.8vw, 1rem)",
                         color: "#ffff00",
                       }}
                     />
@@ -531,12 +610,17 @@ export function Picker() {
                       type="radio"
                       id="hidden-2"
                       name="hiddenCards"
-                      label="Two cards"
+                      label={
+                        <>
+                          <span className="d-md-none">Two</span>
+                          <span className="d-none d-md-inline">Two cards</span>
+                        </>
+                      }
                       checked={config.hiddenCardsCount === 2}
                       onChange={() => handleHiddenCardsCountChange(2)}
                       style={{
                         fontFamily: "monospace",
-                        fontSize: "clamp(0.85rem, 1.8vw, 1rem)",
+                        fontSize: "clamp(0.7rem, 1.8vw, 1rem)",
                         color: "#ffff00",
                       }}
                     />
@@ -544,155 +628,159 @@ export function Picker() {
                 </Row>
 
                 <div
-                  className="mt-4"
+                  className="mt-3"
                   style={{
                     backgroundColor: "#000066",
                     border: "2px solid #ffd700",
                     borderRadius: "6px",
-                    padding: "1rem",
+                    padding: "0.75rem",
                   }}
                 >
                   <h3
                     style={{
                       fontFamily: "monospace",
                       fontWeight: "bold",
-                      fontSize: "clamp(1rem, 2vw, 1.2rem)",
+                      fontSize: "clamp(0.85rem, 2vw, 1rem)",
                       color: "#ffd700",
-                      marginBottom: "0.75rem",
+                      marginBottom: "0.5rem",
                     }}
                   >
-                    How to Play
-                  </h3>
-                  <ul
-                    style={{
-                      fontFamily: "monospace",
-                      fontSize: "clamp(0.75rem, 1.6vw, 0.9rem)",
-                      color: "#ffff00",
-                      marginBottom: "1rem",
-                      paddingLeft: "1.5rem",
-                    }}
-                  >
-                    <li>
-                      Click PLAY to deal 5 cards to each player (
-                      {5 - config.hiddenCardsCount} shown,{" "}
-                      {config.hiddenCardsCount} hidden)
-                    </li>
-                    <li>
-                      Click REVEAL to show all cards and determine the winner
-                    </li>
-                    <li>
-                      Highest poker hand wins! If tied, click TIE BREAKER to
-                      play again
-                    </li>
-                  </ul>
-
-                  <h3
-                    style={{
-                      fontFamily: "monospace",
-                      fontWeight: "bold",
-                      fontSize: "clamp(1rem, 2vw, 1.2rem)",
-                      color: "#ffd700",
-                      marginBottom: "0.75rem",
-                      marginTop: "1rem",
-                    }}
-                  >
-                    Poker Hand Rankings (Highest to Lowest)
+                    Hand Rankings (Highest to Lowest)
                   </h3>
                   <table
                     style={{
                       width: "100%",
                       fontFamily: "monospace",
-                      fontSize: "clamp(0.7rem, 1.5vw, 0.85rem)",
+                      fontSize: "clamp(0.65rem, 1.5vw, 0.85rem)",
                       color: "#ffff00",
                       borderCollapse: "collapse",
                     }}
                   >
                     <tbody>
                       <tr style={{ borderBottom: "1px solid #ffd700" }}>
-                        <td style={{ padding: "0.5rem", fontWeight: "bold" }}>
+                        <td
+                          style={{
+                            padding: "0.25rem 0.5rem 0.25rem 0.25rem",
+                            fontWeight: "bold",
+                          }}
+                        >
                           1. Five of a Kind
                         </td>
-                        <td style={{ padding: "0.5rem" }}>
-                          Five cards of the same rank (requires jokers)
-                        </td>
+                        <td style={{ padding: "0.25rem" }}>Five same rank</td>
                       </tr>
                       <tr style={{ borderBottom: "1px solid #ffd700" }}>
-                        <td style={{ padding: "0.5rem", fontWeight: "bold" }}>
+                        <td
+                          style={{
+                            padding: "0.25rem 0.5rem 0.25rem 0.25rem",
+                            fontWeight: "bold",
+                          }}
+                        >
                           2. Royal Flush
                         </td>
-                        <td style={{ padding: "0.5rem" }}>
-                          A, K, Q, J, 10 of the same suit
+                        <td style={{ padding: "0.25rem" }}>
+                          A-K-Q-J-10 same suit
                         </td>
                       </tr>
                       <tr style={{ borderBottom: "1px solid #ffd700" }}>
-                        <td style={{ padding: "0.5rem", fontWeight: "bold" }}>
+                        <td
+                          style={{
+                            padding: "0.25rem 0.5rem 0.25rem 0.25rem",
+                            fontWeight: "bold",
+                          }}
+                        >
                           3. Straight Flush
                         </td>
-                        <td style={{ padding: "0.5rem" }}>
-                          Five sequential cards of the same suit
+                        <td style={{ padding: "0.25rem" }}>
+                          Five seq. same suit
                         </td>
                       </tr>
                       <tr style={{ borderBottom: "1px solid #ffd700" }}>
-                        <td style={{ padding: "0.5rem", fontWeight: "bold" }}>
+                        <td
+                          style={{
+                            padding: "0.25rem 0.5rem 0.25rem 0.25rem",
+                            fontWeight: "bold",
+                          }}
+                        >
                           4. Four of a Kind
                         </td>
-                        <td style={{ padding: "0.5rem" }}>
-                          Four cards of the same rank
-                        </td>
+                        <td style={{ padding: "0.25rem" }}>Four same rank</td>
                       </tr>
                       <tr style={{ borderBottom: "1px solid #ffd700" }}>
-                        <td style={{ padding: "0.5rem", fontWeight: "bold" }}>
+                        <td
+                          style={{
+                            padding: "0.25rem 0.5rem 0.25rem 0.25rem",
+                            fontWeight: "bold",
+                          }}
+                        >
                           5. Full House
                         </td>
-                        <td style={{ padding: "0.5rem" }}>
-                          Three of a kind plus a pair
-                        </td>
+                        <td style={{ padding: "0.25rem" }}>Three + pair</td>
                       </tr>
                       <tr style={{ borderBottom: "1px solid #ffd700" }}>
-                        <td style={{ padding: "0.5rem", fontWeight: "bold" }}>
+                        <td
+                          style={{
+                            padding: "0.25rem 0.5rem 0.25rem 0.25rem",
+                            fontWeight: "bold",
+                          }}
+                        >
                           6. Flush
                         </td>
-                        <td style={{ padding: "0.5rem" }}>
-                          Five cards of the same suit
-                        </td>
+                        <td style={{ padding: "0.25rem" }}>Five same suit</td>
                       </tr>
                       <tr style={{ borderBottom: "1px solid #ffd700" }}>
-                        <td style={{ padding: "0.5rem", fontWeight: "bold" }}>
+                        <td
+                          style={{
+                            padding: "0.25rem 0.5rem 0.25rem 0.25rem",
+                            fontWeight: "bold",
+                          }}
+                        >
                           7. Straight
                         </td>
-                        <td style={{ padding: "0.5rem" }}>
-                          Five sequential cards of any suit
-                        </td>
+                        <td style={{ padding: "0.25rem" }}>Five sequential</td>
                       </tr>
                       <tr style={{ borderBottom: "1px solid #ffd700" }}>
-                        <td style={{ padding: "0.5rem", fontWeight: "bold" }}>
+                        <td
+                          style={{
+                            padding: "0.25rem 0.5rem 0.25rem 0.25rem",
+                            fontWeight: "bold",
+                          }}
+                        >
                           8. Three of a Kind
                         </td>
-                        <td style={{ padding: "0.5rem" }}>
-                          Three cards of the same rank
-                        </td>
+                        <td style={{ padding: "0.25rem" }}>Three same rank</td>
                       </tr>
                       <tr style={{ borderBottom: "1px solid #ffd700" }}>
-                        <td style={{ padding: "0.5rem", fontWeight: "bold" }}>
+                        <td
+                          style={{
+                            padding: "0.25rem 0.5rem 0.25rem 0.25rem",
+                            fontWeight: "bold",
+                          }}
+                        >
                           9. Two Pair
                         </td>
-                        <td style={{ padding: "0.5rem" }}>
-                          Two different pairs
-                        </td>
+                        <td style={{ padding: "0.25rem" }}>Two pairs</td>
                       </tr>
                       <tr style={{ borderBottom: "1px solid #ffd700" }}>
-                        <td style={{ padding: "0.5rem", fontWeight: "bold" }}>
+                        <td
+                          style={{
+                            padding: "0.25rem 0.5rem 0.25rem 0.25rem",
+                            fontWeight: "bold",
+                          }}
+                        >
                           10. One Pair
                         </td>
-                        <td style={{ padding: "0.5rem" }}>
-                          Two cards of the same rank
-                        </td>
+                        <td style={{ padding: "0.25rem" }}>Two same rank</td>
                       </tr>
                       <tr>
-                        <td style={{ padding: "0.5rem", fontWeight: "bold" }}>
+                        <td
+                          style={{
+                            padding: "0.25rem 0.5rem 0.25rem 0.25rem",
+                            fontWeight: "bold",
+                          }}
+                        >
                           11. High Card
                         </td>
-                        <td style={{ padding: "0.5rem" }}>No matching cards</td>
+                        <td style={{ padding: "0.25rem" }}>No match</td>
                       </tr>
                     </tbody>
                   </table>
@@ -705,84 +793,110 @@ export function Picker() {
             <Row className="mb-3">
               <Col md={{ span: 10, offset: 1 }}>
                 <div
-                  className="p-4 text-center mb-3"
+                  className="mb-3"
+                  style={{
+                    textAlign: "center",
+                    fontFamily: "monospace",
+                  }}
+                >
+                  <p
+                    style={{
+                      fontWeight: "bold",
+                      fontSize: "clamp(0.9rem, 2vw, 1.1rem)",
+                      color: "#ffd700",
+                      marginBottom: "0.5rem",
+                    }}
+                  >
+                    Waiting for host to click PLAY...
+                  </p>
+                  <p
+                    style={{
+                      fontSize: "clamp(0.8rem, 1.8vw, 1rem)",
+                      color: "#ffff00",
+                      marginBottom: 0,
+                    }}
+                  >
+                    <span style={{ fontWeight: "bold", color: "#ffd700" }}>
+                      Participants ({participants.length}):{" "}
+                    </span>
+                    {participants.map((p) => p.name).join(", ")}
+                  </p>
+                </div>
+
+                <div
+                  className="mb-3"
                   style={{
                     backgroundColor: "#000066",
                     border: "2px solid #ffd700",
                     borderRadius: "6px",
+                    padding: "0.75rem",
                   }}
                 >
                   <h3
                     style={{
                       fontFamily: "monospace",
                       fontWeight: "bold",
-                      fontSize: "1.5rem",
+                      fontSize: "clamp(0.85rem, 2vw, 1rem)",
                       color: "#ffd700",
-                      marginBottom: "1rem",
+                      marginBottom: "0.5rem",
                     }}
                   >
-                    Waiting for host to start the game...
+                    How to Play
                   </h3>
-                  <p
+                  <ul
                     style={{
                       fontFamily: "monospace",
-                      fontSize: "1rem",
+                      fontSize: "clamp(0.7rem, 1.5vw, 0.85rem)",
                       color: "#ffff00",
-                      marginBottom: "1rem",
+                      marginBottom: 0,
+                      paddingLeft: "1.25rem",
                     }}
                   >
-                    Participants ({participants.length}):{" "}
-                    {participants.map((p) => p.name).join(", ")}
-                  </p>
-                  <Button
-                    onClick={handleForceClaimHost}
-                    style={{
-                      backgroundColor: "#ff6600",
-                      color: "#ffffff",
-                      border: "2px solid #ffd700",
-                      fontWeight: "bold",
-                      fontSize: "0.9rem",
-                      fontFamily: "monospace",
-                      padding: "0.5rem 1rem",
-                    }}
-                  >
-                    CLAIM HOST (Take Over)
-                  </Button>
-                  <p
-                    style={{
-                      fontFamily: "monospace",
-                      fontSize: "0.75rem",
-                      color: "#ffff00",
-                      marginTop: "0.5rem",
-                      fontStyle: "italic",
-                    }}
-                  >
-                    Use this if the host is inactive or has left
-                  </p>
+                    <li>
+                      Wait for host to deal 5 cards (
+                      {5 - config.hiddenCardsCount} shown,{" "}
+                      {config.hiddenCardsCount} hidden)
+                    </li>
+                    <li>Optionally select one face-up card to discard</li>
+                    <li>Host clicks DISCARD to replace all selected cards</li>
+                    <li>Host clicks REVEAL to conclude the game</li>
+                    <li>
+                      Highest poker hand wins! If tied, host will start TIE
+                      BREAKER
+                    </li>
+                  </ul>
                 </div>
 
                 <Row className="mb-3">
-                  <Col md={6}>
+                  <Col xs={4} md={6}>
                     <Form.Label
                       style={{
                         fontFamily: "monospace",
                         fontWeight: "bold",
-                        fontSize: "clamp(0.9rem, 2vw, 1.1rem)",
+                        fontSize: "clamp(0.75rem, 2vw, 1.1rem)",
                         color: "#ffff00",
                       }}
                     >
-                      Deck Type
+                      <span className="d-md-none">Deck</span>
+                      <span className="d-none d-md-inline">Deck Type</span>
                     </Form.Label>
                     <Form.Check
                       type="radio"
                       id="deck-independent-view"
                       name="deckTypeView"
-                      label="Each player has an independent deck"
+                      label={
+                        <>
+                          <span className="d-md-none">Individual</span>
+                          <span className="d-none d-md-inline">
+                            Each player has an independent deck
+                          </span>
+                        </>
+                      }
                       checked={config.deckType === "independent"}
                       disabled
                       style={{
                         fontFamily: "monospace",
-                        fontSize: "clamp(0.85rem, 1.8vw, 1rem)",
+                        fontSize: "clamp(0.7rem, 1.8vw, 1rem)",
                         color: "#ffff00",
                       }}
                     />
@@ -790,23 +904,30 @@ export function Picker() {
                       type="radio"
                       id="deck-shared-view"
                       name="deckTypeView"
-                      label="All players draw from shared deck(s)"
+                      label={
+                        <>
+                          <span className="d-md-none">Shared</span>
+                          <span className="d-none d-md-inline">
+                            All players draw from shared deck(s)
+                          </span>
+                        </>
+                      }
                       checked={config.deckType === "shared"}
                       disabled
                       style={{
                         fontFamily: "monospace",
-                        fontSize: "clamp(0.85rem, 1.8vw, 1rem)",
+                        fontSize: "clamp(0.7rem, 1.8vw, 1rem)",
                         color: "#ffff00",
                       }}
                     />
                   </Col>
 
-                  <Col md={3}>
+                  <Col xs={4} md={3}>
                     <Form.Label
                       style={{
                         fontFamily: "monospace",
                         fontWeight: "bold",
-                        fontSize: "clamp(0.9rem, 2vw, 1.1rem)",
+                        fontSize: "clamp(0.75rem, 2vw, 1.1rem)",
                         color: "#ffff00",
                       }}
                     >
@@ -816,12 +937,17 @@ export function Picker() {
                       type="radio"
                       id="jokers-no-view"
                       name="jokerModeView"
-                      label="No jokers"
+                      label={
+                        <>
+                          <span className="d-md-none">None</span>
+                          <span className="d-none d-md-inline">No jokers</span>
+                        </>
+                      }
                       checked={!config.jokerMode}
                       disabled
                       style={{
                         fontFamily: "monospace",
-                        fontSize: "clamp(0.85rem, 1.8vw, 1rem)",
+                        fontSize: "clamp(0.7rem, 1.8vw, 1rem)",
                         color: "#ffff00",
                       }}
                     />
@@ -829,38 +955,51 @@ export function Picker() {
                       type="radio"
                       id="jokers-yes-view"
                       name="jokerModeView"
-                      label="Two jokers per deck"
+                      label={
+                        <>
+                          <span className="d-md-none">Two</span>
+                          <span className="d-none d-md-inline">
+                            Two jokers per deck
+                          </span>
+                        </>
+                      }
                       checked={config.jokerMode}
                       disabled
                       style={{
                         fontFamily: "monospace",
-                        fontSize: "clamp(0.85rem, 1.8vw, 1rem)",
+                        fontSize: "clamp(0.7rem, 1.8vw, 1rem)",
                         color: "#ffff00",
                       }}
                     />
                   </Col>
 
-                  <Col md={3}>
+                  <Col xs={4} md={3}>
                     <Form.Label
                       style={{
                         fontFamily: "monospace",
                         fontWeight: "bold",
-                        fontSize: "clamp(0.9rem, 2vw, 1.1rem)",
+                        fontSize: "clamp(0.75rem, 2vw, 1.1rem)",
                         color: "#ffff00",
                       }}
                     >
-                      Hidden Cards
+                      <span className="d-md-none">Hidden</span>
+                      <span className="d-none d-md-inline">Hidden Cards</span>
                     </Form.Label>
                     <Form.Check
                       type="radio"
                       id="hidden-1-view"
                       name="hiddenCardsView"
-                      label="One card"
+                      label={
+                        <>
+                          <span className="d-md-none">One</span>
+                          <span className="d-none d-md-inline">One card</span>
+                        </>
+                      }
                       checked={config.hiddenCardsCount === 1}
                       disabled
                       style={{
                         fontFamily: "monospace",
-                        fontSize: "clamp(0.85rem, 1.8vw, 1rem)",
+                        fontSize: "clamp(0.7rem, 1.8vw, 1rem)",
                         color: "#ffff00",
                       }}
                     />
@@ -868,12 +1007,17 @@ export function Picker() {
                       type="radio"
                       id="hidden-2-view"
                       name="hiddenCardsView"
-                      label="Two cards"
+                      label={
+                        <>
+                          <span className="d-md-none">Two</span>
+                          <span className="d-none d-md-inline">Two cards</span>
+                        </>
+                      }
                       checked={config.hiddenCardsCount === 2}
                       disabled
                       style={{
                         fontFamily: "monospace",
-                        fontSize: "clamp(0.85rem, 1.8vw, 1rem)",
+                        fontSize: "clamp(0.7rem, 1.8vw, 1rem)",
                         color: "#ffff00",
                       }}
                     />
@@ -881,159 +1025,191 @@ export function Picker() {
                 </Row>
 
                 <div
-                  className="mt-4"
+                  className="mt-3"
                   style={{
                     backgroundColor: "#000066",
                     border: "2px solid #ffd700",
                     borderRadius: "6px",
-                    padding: "1rem",
+                    padding: "0.75rem",
                   }}
                 >
                   <h3
                     style={{
                       fontFamily: "monospace",
                       fontWeight: "bold",
-                      fontSize: "clamp(1rem, 2vw, 1.2rem)",
+                      fontSize: "clamp(0.85rem, 2vw, 1rem)",
                       color: "#ffd700",
-                      marginBottom: "0.75rem",
+                      marginBottom: "0.5rem",
                     }}
                   >
-                    How to Play
-                  </h3>
-                  <ul
-                    style={{
-                      fontFamily: "monospace",
-                      fontSize: "clamp(0.75rem, 1.6vw, 0.9rem)",
-                      color: "#ffff00",
-                      marginBottom: "1rem",
-                      paddingLeft: "1.5rem",
-                    }}
-                  >
-                    <li>
-                      Host will click PLAY to deal 5 cards to each player (
-                      {5 - config.hiddenCardsCount} shown,{" "}
-                      {config.hiddenCardsCount} hidden)
-                    </li>
-                    <li>
-                      Host will click REVEAL to show all cards and determine the
-                      winner
-                    </li>
-                    <li>
-                      Highest poker hand wins! If tied, host will click TIE
-                      BREAKER to play again
-                    </li>
-                  </ul>
-
-                  <h3
-                    style={{
-                      fontFamily: "monospace",
-                      fontWeight: "bold",
-                      fontSize: "clamp(1rem, 2vw, 1.2rem)",
-                      color: "#ffd700",
-                      marginBottom: "0.75rem",
-                      marginTop: "1rem",
-                    }}
-                  >
-                    Poker Hand Rankings (Highest to Lowest)
+                    Hand Rankings (Highest to Lowest)
                   </h3>
                   <table
                     style={{
                       width: "100%",
                       fontFamily: "monospace",
-                      fontSize: "clamp(0.7rem, 1.5vw, 0.85rem)",
+                      fontSize: "clamp(0.65rem, 1.5vw, 0.85rem)",
                       color: "#ffff00",
                       borderCollapse: "collapse",
                     }}
                   >
                     <tbody>
                       <tr style={{ borderBottom: "1px solid #ffd700" }}>
-                        <td style={{ padding: "0.5rem", fontWeight: "bold" }}>
+                        <td
+                          style={{
+                            padding: "0.25rem 0.5rem 0.25rem 0.25rem",
+                            fontWeight: "bold",
+                          }}
+                        >
                           1. Five of a Kind
                         </td>
-                        <td style={{ padding: "0.5rem" }}>
-                          Five cards of the same rank (requires jokers)
-                        </td>
+                        <td style={{ padding: "0.25rem" }}>Five same rank</td>
                       </tr>
                       <tr style={{ borderBottom: "1px solid #ffd700" }}>
-                        <td style={{ padding: "0.5rem", fontWeight: "bold" }}>
+                        <td
+                          style={{
+                            padding: "0.25rem 0.5rem 0.25rem 0.25rem",
+                            fontWeight: "bold",
+                          }}
+                        >
                           2. Royal Flush
                         </td>
-                        <td style={{ padding: "0.5rem" }}>
-                          A, K, Q, J, 10 of the same suit
+                        <td style={{ padding: "0.25rem" }}>
+                          A-K-Q-J-10 same suit
                         </td>
                       </tr>
                       <tr style={{ borderBottom: "1px solid #ffd700" }}>
-                        <td style={{ padding: "0.5rem", fontWeight: "bold" }}>
+                        <td
+                          style={{
+                            padding: "0.25rem 0.5rem 0.25rem 0.25rem",
+                            fontWeight: "bold",
+                          }}
+                        >
                           3. Straight Flush
                         </td>
-                        <td style={{ padding: "0.5rem" }}>
-                          Five sequential cards of the same suit
+                        <td style={{ padding: "0.25rem" }}>
+                          Five seq. same suit
                         </td>
                       </tr>
                       <tr style={{ borderBottom: "1px solid #ffd700" }}>
-                        <td style={{ padding: "0.5rem", fontWeight: "bold" }}>
+                        <td
+                          style={{
+                            padding: "0.25rem 0.5rem 0.25rem 0.25rem",
+                            fontWeight: "bold",
+                          }}
+                        >
                           4. Four of a Kind
                         </td>
-                        <td style={{ padding: "0.5rem" }}>
-                          Four cards of the same rank
-                        </td>
+                        <td style={{ padding: "0.25rem" }}>Four same rank</td>
                       </tr>
                       <tr style={{ borderBottom: "1px solid #ffd700" }}>
-                        <td style={{ padding: "0.5rem", fontWeight: "bold" }}>
+                        <td
+                          style={{
+                            padding: "0.25rem 0.5rem 0.25rem 0.25rem",
+                            fontWeight: "bold",
+                          }}
+                        >
                           5. Full House
                         </td>
-                        <td style={{ padding: "0.5rem" }}>
-                          Three of a kind plus a pair
-                        </td>
+                        <td style={{ padding: "0.25rem" }}>Three + pair</td>
                       </tr>
                       <tr style={{ borderBottom: "1px solid #ffd700" }}>
-                        <td style={{ padding: "0.5rem", fontWeight: "bold" }}>
+                        <td
+                          style={{
+                            padding: "0.25rem 0.5rem 0.25rem 0.25rem",
+                            fontWeight: "bold",
+                          }}
+                        >
                           6. Flush
                         </td>
-                        <td style={{ padding: "0.5rem" }}>
-                          Five cards of the same suit
-                        </td>
+                        <td style={{ padding: "0.25rem" }}>Five same suit</td>
                       </tr>
                       <tr style={{ borderBottom: "1px solid #ffd700" }}>
-                        <td style={{ padding: "0.5rem", fontWeight: "bold" }}>
+                        <td
+                          style={{
+                            padding: "0.25rem 0.5rem 0.25rem 0.25rem",
+                            fontWeight: "bold",
+                          }}
+                        >
                           7. Straight
                         </td>
-                        <td style={{ padding: "0.5rem" }}>
-                          Five sequential cards of any suit
-                        </td>
+                        <td style={{ padding: "0.25rem" }}>Five sequential</td>
                       </tr>
                       <tr style={{ borderBottom: "1px solid #ffd700" }}>
-                        <td style={{ padding: "0.5rem", fontWeight: "bold" }}>
+                        <td
+                          style={{
+                            padding: "0.25rem 0.5rem 0.25rem 0.25rem",
+                            fontWeight: "bold",
+                          }}
+                        >
                           8. Three of a Kind
                         </td>
-                        <td style={{ padding: "0.5rem" }}>
-                          Three cards of the same rank
-                        </td>
+                        <td style={{ padding: "0.25rem" }}>Three same rank</td>
                       </tr>
                       <tr style={{ borderBottom: "1px solid #ffd700" }}>
-                        <td style={{ padding: "0.5rem", fontWeight: "bold" }}>
+                        <td
+                          style={{
+                            padding: "0.25rem 0.5rem 0.25rem 0.25rem",
+                            fontWeight: "bold",
+                          }}
+                        >
                           9. Two Pair
                         </td>
-                        <td style={{ padding: "0.5rem" }}>
-                          Two different pairs
-                        </td>
+                        <td style={{ padding: "0.25rem" }}>Two pairs</td>
                       </tr>
                       <tr style={{ borderBottom: "1px solid #ffd700" }}>
-                        <td style={{ padding: "0.5rem", fontWeight: "bold" }}>
+                        <td
+                          style={{
+                            padding: "0.25rem 0.5rem 0.25rem 0.25rem",
+                            fontWeight: "bold",
+                          }}
+                        >
                           10. One Pair
                         </td>
-                        <td style={{ padding: "0.5rem" }}>
-                          Two cards of the same rank
-                        </td>
+                        <td style={{ padding: "0.25rem" }}>Two same rank</td>
                       </tr>
                       <tr>
-                        <td style={{ padding: "0.5rem", fontWeight: "bold" }}>
+                        <td
+                          style={{
+                            padding: "0.25rem 0.5rem 0.25rem 0.25rem",
+                            fontWeight: "bold",
+                          }}
+                        >
                           11. High Card
                         </td>
-                        <td style={{ padding: "0.5rem" }}>No matching cards</td>
+                        <td style={{ padding: "0.25rem" }}>No match</td>
                       </tr>
                     </tbody>
                   </table>
+                </div>
+
+                <div className="mt-3 text-center">
+                  <Button
+                    onClick={handleForceClaimHost}
+                    style={{
+                      backgroundColor: "#ff6600",
+                      color: "#ffffff",
+                      border: "2px solid #ffd700",
+                      fontWeight: "bold",
+                      fontSize: "clamp(0.75rem, 1.6vw, 0.85rem)",
+                      fontFamily: "monospace",
+                      padding: "0.4rem 0.8rem",
+                    }}
+                  >
+                    CLAIM HOST (Take Over)
+                  </Button>
+                  <p
+                    style={{
+                      fontFamily: "monospace",
+                      fontSize: "clamp(0.65rem, 1.4vw, 0.75rem)",
+                      color: "#ffff00",
+                      marginTop: "0.5rem",
+                      fontStyle: "italic",
+                      marginBottom: 0,
+                    }}
+                  >
+                    Use this if the host is inactive or has left
+                  </p>
                 </div>
               </Col>
             </Row>
@@ -1170,19 +1346,51 @@ export function Picker() {
                             : "\u00A0"}
                         </div>
                         <div className="d-flex justify-content-center gap-1">
-                          {player.cards.map((card, cardIndex) => (
-                            <PlayingCard
-                              key={cardIndex}
-                              card={
-                                cardIndex < config.hiddenCardsCount &&
-                                gameState === "showing"
-                                  ? null
-                                  : card
-                              }
-                              disableHover={true}
-                              hideLabel={true}
-                            />
-                          ))}
+                          {player.cards.map((card, cardIndex) => {
+                            const isHidden =
+                              cardIndex < config.hiddenCardsCount &&
+                              gameState === "showing";
+                            const isCurrentPlayer = player.id === playerId;
+                            const isSelectable =
+                              isCurrentPlayer &&
+                              gameState === "showing" &&
+                              !isHidden &&
+                              !hasDrawn;
+                            const isSelected =
+                              player.selectedCardIndex === cardIndex;
+
+                            return (
+                              <div
+                                key={cardIndex}
+                                onClick={() => {
+                                  if (isSelectable) {
+                                    selectCard(cardIndex);
+                                  }
+                                }}
+                                style={{
+                                  cursor: isSelectable ? "pointer" : "default",
+                                  position: "relative",
+                                  transform: isSelected
+                                    ? "translateY(-10px)"
+                                    : "none",
+                                  transition: "transform 0.2s ease",
+                                  border: isSelected
+                                    ? "3px solid #00ff00"
+                                    : "none",
+                                  borderRadius: "8px",
+                                  boxShadow: isSelected
+                                    ? "0 0 15px rgba(0, 255, 0, 0.8)"
+                                    : "none",
+                                }}
+                              >
+                                <PlayingCard
+                                  card={isHidden ? null : card}
+                                  disableHover={!isSelectable}
+                                  hideLabel={true}
+                                />
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
                     </div>

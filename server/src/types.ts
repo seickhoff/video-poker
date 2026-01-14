@@ -8,6 +8,7 @@ export interface Player {
   cards: Card[];
   deck: Card[];
   handEvaluation: PokerHandEvaluation | null;
+  selectedCardIndex?: number;
 }
 
 export type GameState = "input" | "showing" | "revealed" | "tiebreaker";
@@ -27,6 +28,8 @@ export interface GameRoom {
   players: Player[];
   winners: Player[];
   config: GameConfig;
+  sharedDeck?: Card[];
+  hasDrawn: boolean;
 }
 
 // Client to Server Events
@@ -37,6 +40,8 @@ export interface ClientToServerEvents {
   "join-game": (playerName: string) => void;
   "update-config": (config: GameConfig) => void;
   "start-game": () => void;
+  "select-card": (cardIndex: number) => void;
+  "draw-cards": () => void;
   "reveal-cards": () => void;
   "start-tiebreaker": () => void;
   "new-game": () => void;
@@ -52,6 +57,7 @@ export interface ServerToClientEvents {
     players: Player[];
     winners: Player[];
     config: GameConfig;
+    hasDrawn: boolean;
   }) => void;
   "participants-update": (
     participants: Array<{ id: string; name: string }>

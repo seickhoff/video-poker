@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "react-bootstrap";
 import { Card, GameType } from "../types/game";
 import { evaluateHand } from "../utils/handEvaluator";
@@ -7,13 +7,6 @@ interface PickAPairHelperProps {
   hand: Card[]; // [card1, card2, null, card3, card4]
   deck: Card[];
   wager: number;
-}
-
-interface CardChoice {
-  index: number;
-  card: Card;
-  expectedValue: number;
-  bestHandFrequency: Record<string, number>;
 }
 
 /**

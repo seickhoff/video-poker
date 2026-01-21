@@ -459,6 +459,7 @@ export const VideoPokerProvider = ({ children }: { children: ReactNode }) => {
     setBet,
     dealCards,
     toggleHoldCard,
+    setHeldCards,
     drawCards,
     startDoubleDown,
     selectDoubleDownCard,

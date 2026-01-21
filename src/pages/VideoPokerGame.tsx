@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useVideoPoker } from "../hooks/useVideoPoker";
 import { PayoutTable } from "../components/PayoutTable";
 import { CardHand } from "../components/CardHand";
+import { StrategyHelper } from "../components/StrategyHelper";
 import { HandType, GameType } from "../types/game";
 import {
   getGameStats,
@@ -21,6 +22,7 @@ export const VideoPokerGame = () => {
     credits,
     sequence,
     hand,
+    deck,
     wager,
     heldCards,
     currentHand,
@@ -30,6 +32,7 @@ export const VideoPokerGame = () => {
     setBet,
     dealCards,
     toggleHoldCard,
+    setHeldCards,
     drawCards,
     startDoubleDown,
     selectDoubleDownCard,
@@ -132,6 +135,23 @@ export const VideoPokerGame = () => {
               selectedCardIndex={selectedCardIndex}
             />
           </div>
+
+          {/* Strategy Helper - Available for all game types during hold selection (except Pick-a-Pair) */}
+          {sequence === 1 &&
+            gameType &&
+            gameType !== GameType.PickAPairPoker &&
+            hand.length === 5 && (
+              <div className="mb-2">
+                <StrategyHelper
+                  hand={hand}
+                  deck={deck}
+                  gameType={gameType}
+                  wager={wager}
+                  currentHeldCards={heldCards}
+                  onApplyRecommendation={setHeldCards}
+                />
+              </div>
+            )}
 
           {/* Controls - Two Row Layout */}
 

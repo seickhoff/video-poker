@@ -21,6 +21,7 @@ export interface VideoPokerState {
   setBet: (wager: number) => void;
   dealCards: () => void;
   toggleHoldCard: (index: number) => void;
+  setHeldCards: (heldCards: boolean[]) => void;
   drawCards: () => void;
   startDoubleDown: () => void;
   selectDoubleDownCard: (index: number) => void;

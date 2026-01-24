@@ -5,6 +5,7 @@ import { useVideoPoker } from "../hooks/useVideoPoker";
 import { PayoutTable } from "../components/PayoutTable";
 import { CardHand } from "../components/CardHand";
 import { StrategyHelper } from "../components/StrategyHelper";
+import { PickAPairHelper } from "../components/PickAPairHelper";
 import { HandType, GameType } from "../types/game";
 import {
   getGameStats,
@@ -150,6 +151,15 @@ export const VideoPokerGame = () => {
                   currentHeldCards={heldCards}
                   onApplyRecommendation={setHeldCards}
                 />
+              </div>
+            )}
+
+          {/* Pick-a-Pair Helper - Shows which card to pick */}
+          {sequence === 1 &&
+            gameType === GameType.PickAPairPoker &&
+            hand.length === 5 && (
+              <div className="mb-2">
+                <PickAPairHelper hand={hand} deck={deck} wager={wager} />
               </div>
             )}
 

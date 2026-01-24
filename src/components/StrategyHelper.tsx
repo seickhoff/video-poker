@@ -1,7 +1,10 @@
 import { useState, useEffect, useMemo } from "react";
-import { Button } from "react-bootstrap";
+import { Button, Modal } from "react-bootstrap";
 import { Card, GameType } from "../types/game";
-import { getOptimalHold } from "../utils/optimalStrategy";
+import {
+  calculateOptimalStrategy,
+  HoldRecommendation,
+} from "../utils/optimalStrategy";
 import { getOptimalStrategy } from "../utils/videoPokerStrategy";
 
 interface StrategyHelperProps {
@@ -28,7 +31,9 @@ export const StrategyHelper = ({
     optimalHold: boolean[];
     expectedValue: number;
     description: string;
+    allRecommendations: HoldRecommendation[];
   } | null>(null);
+  const [showAllChoices, setShowAllChoices] = useState(false);
 
   // Reset hint when hand changes
   useEffect(() => {
@@ -63,8 +68,14 @@ export const StrategyHelper = ({
 
     // Use setTimeout to allow UI to update before heavy calculation
     const timer = setTimeout(() => {
-      const result = getOptimalHold(hand, deck, gameType, wager);
-      setExactResult(result);
+      const result = calculateOptimalStrategy(hand, deck, gameType, wager);
+      const best = result.recommendations[0];
+      setExactResult({
+        optimalHold: best.holdPattern,
+        expectedValue: best.expectedValue,
+        description: best.description,
+        allRecommendations: result.recommendations,
+      });
       setIsCalculating(false);
     }, 50);
 
@@ -101,6 +112,23 @@ export const StrategyHelper = ({
   const formatEV = (ev: number): string => {
     if (ev < 0.01 && ev > 0) return "<$0.01";
     return `$${ev.toFixed(2)}`;
+  };
+
+  // Get card ID for SVG
+  const getCardId = (card: Card): string => {
+    if (card === "O1") return "O1";
+    if (card === "O2") return "O2";
+    const rank = card.slice(0, -1);
+    const suit = card.slice(-1).toUpperCase();
+    return `${rank}${suit}`;
+  };
+
+  // Apply a hold pattern from the modal
+  const handleApplyFromModal = (holdPattern: boolean[]) => {
+    if (onApplyRecommendation) {
+      onApplyRecommendation(holdPattern);
+    }
+    setShowAllChoices(false);
   };
 
   if (!showHint) {
@@ -301,6 +329,8 @@ export const StrategyHelper = ({
             display: "flex",
             alignItems: "center",
             gap: "8px",
+            flexWrap: "wrap",
+            justifyContent: "center",
           }}
         >
           <Button
@@ -328,8 +358,209 @@ export const StrategyHelper = ({
           >
             {useExactCalc ? "(slower, shows EV)" : "(fast rules)"}
           </span>
+          {/* Show All button - only when exact calc has results */}
+          {useExactCalc && exactResult && !isCalculating && (
+            <Button
+              size="sm"
+              onClick={() => setShowAllChoices(true)}
+              style={{
+                backgroundColor: "#003366",
+                color: "#ffffff",
+                border: "1px solid #0066cc",
+                fontWeight: "normal",
+                fontSize: "clamp(0.5rem, 1.2vw, 0.7rem)",
+                padding: "2px 6px",
+                fontFamily: "monospace",
+              }}
+            >
+              Show All
+            </Button>
+          )}
         </div>
       </div>
+
+      {/* All Choices Modal */}
+      <Modal
+        show={showAllChoices}
+        onHide={() => setShowAllChoices(false)}
+        size="lg"
+        centered
+        contentClassName="bg-dark"
+      >
+        <Modal.Header
+          closeButton
+          closeVariant="white"
+          style={{
+            backgroundColor: "#1a1a2e",
+            borderBottom: "1px solid #333366",
+          }}
+        >
+          <Modal.Title
+            style={{
+              color: "#ffff00",
+              fontFamily: "monospace",
+              fontSize: "clamp(0.9rem, 2vw, 1.2rem)",
+            }}
+          >
+            All Hold Options (Sorted by EV)
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body
+          style={{
+            backgroundColor: "#1a1a2e",
+            maxHeight: "60vh",
+            overflowY: "auto",
+          }}
+        >
+          {exactResult?.allRecommendations.map((rec, idx) => {
+            const isBest = idx === 0;
+            const evDiff =
+              exactResult.allRecommendations[0].expectedValue -
+              rec.expectedValue;
+
+            return (
+              <div
+                key={idx}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "12px",
+                  padding: "8px 12px",
+                  marginBottom: "4px",
+                  backgroundColor: isBest ? "#003300" : "#222233",
+                  border: isBest ? "2px solid #00ff00" : "1px solid #333355",
+                  borderRadius: "6px",
+                }}
+              >
+                {/* Rank */}
+                <div
+                  style={{
+                    color: isBest ? "#00ff00" : "#888888",
+                    fontFamily: "monospace",
+                    fontWeight: "bold",
+                    fontSize: "clamp(0.7rem, 1.5vw, 0.9rem)",
+                    minWidth: "28px",
+                  }}
+                >
+                  #{idx + 1}
+                </div>
+
+                {/* Cards with opacity using SVG */}
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "3px",
+                    flex: "0 0 auto",
+                  }}
+                >
+                  {hand.map((card, cardIdx) => {
+                    const isHeld = rec.holdPattern[cardIdx];
+                    return (
+                      <div
+                        key={cardIdx}
+                        style={{
+                          width: "clamp(28px, 6vw, 42px)",
+                          height: "clamp(39px, 8.4vw, 59px)",
+                          opacity: isHeld ? 1 : 0.3,
+                          transition: "opacity 0.2s",
+                          border: isHeld
+                            ? "2px solid #0088ff"
+                            : "1px solid #333",
+                          borderRadius: "3px",
+                          overflow: "hidden",
+                        }}
+                      >
+                        <svg
+                          width="100%"
+                          height="100%"
+                          style={{ display: "block" }}
+                        >
+                          <use href={`#card-${getCardId(card)}`} />
+                        </svg>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* EV */}
+                <div
+                  style={{
+                    color: isBest ? "#00ff00" : "#cccccc",
+                    fontFamily: "monospace",
+                    fontSize: "clamp(0.65rem, 1.4vw, 0.85rem)",
+                    minWidth: "70px",
+                    textAlign: "right",
+                  }}
+                >
+                  {formatEV(rec.expectedValue)}
+                </div>
+
+                {/* Diff from best */}
+                {!isBest && evDiff > 0.001 && (
+                  <div
+                    style={{
+                      color: "#ff6666",
+                      fontFamily: "monospace",
+                      fontSize: "clamp(0.55rem, 1.2vw, 0.75rem)",
+                      minWidth: "60px",
+                    }}
+                  >
+                    (-{formatEV(evDiff)})
+                  </div>
+                )}
+
+                {/* Best label */}
+                {isBest && (
+                  <div
+                    style={{
+                      color: "#00ff00",
+                      fontFamily: "monospace",
+                      fontWeight: "bold",
+                      fontSize: "clamp(0.55rem, 1.2vw, 0.75rem)",
+                    }}
+                  >
+                    BEST
+                  </div>
+                )}
+
+                {/* Apply button */}
+                <Button
+                  size="sm"
+                  onClick={() => handleApplyFromModal(rec.holdPattern)}
+                  style={{
+                    backgroundColor: isBest ? "#006600" : "#333355",
+                    color: "#ffffff",
+                    border: `1px solid ${isBest ? "#00aa00" : "#555577"}`,
+                    fontWeight: "bold",
+                    fontSize: "clamp(0.5rem, 1.1vw, 0.65rem)",
+                    padding: "2px 8px",
+                    fontFamily: "monospace",
+                    marginLeft: "auto",
+                  }}
+                >
+                  APPLY
+                </Button>
+              </div>
+            );
+          })}
+        </Modal.Body>
+        <Modal.Footer
+          style={{
+            backgroundColor: "#1a1a2e",
+            borderTop: "1px solid #333366",
+          }}
+        >
+          <Button
+            variant="secondary"
+            onClick={() => setShowAllChoices(false)}
+            style={{
+              fontFamily: "monospace",
+            }}
+          >
+            Close
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 };

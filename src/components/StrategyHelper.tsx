@@ -410,6 +410,7 @@ export const StrategyHelper = ({
             backgroundColor: "#1a1a2e",
             maxHeight: "60vh",
             overflowY: "auto",
+            overflowX: "hidden",
           }}
         >
           {exactResult?.allRecommendations.map((rec, idx) => {
@@ -424,8 +425,8 @@ export const StrategyHelper = ({
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  gap: "12px",
-                  padding: "8px 12px",
+                  gap: "clamp(4px, 1.5vw, 12px)",
+                  padding: "6px clamp(4px, 1.5vw, 12px)",
                   marginBottom: "4px",
                   backgroundColor: isBest ? "#003300" : "#222233",
                   border: isBest ? "2px solid #00ff00" : "1px solid #333355",
@@ -438,8 +439,8 @@ export const StrategyHelper = ({
                     color: isBest ? "#00ff00" : "#888888",
                     fontFamily: "monospace",
                     fontWeight: "bold",
-                    fontSize: "clamp(0.7rem, 1.5vw, 0.9rem)",
-                    minWidth: "28px",
+                    fontSize: "clamp(0.6rem, 1.5vw, 0.9rem)",
+                    flexShrink: 0,
                   }}
                 >
                   #{idx + 1}
@@ -449,8 +450,9 @@ export const StrategyHelper = ({
                 <div
                   style={{
                     display: "flex",
-                    gap: "3px",
-                    flex: "0 0 auto",
+                    gap: "2px",
+                    flex: "1 1 auto",
+                    minWidth: 0,
                   }}
                 >
                   {hand.map((card, cardIdx) => {
@@ -459,8 +461,8 @@ export const StrategyHelper = ({
                       <div
                         key={cardIdx}
                         style={{
-                          width: "clamp(28px, 6vw, 42px)",
-                          height: "clamp(39px, 8.4vw, 59px)",
+                          width: "clamp(24px, 5vw, 42px)",
+                          height: "clamp(34px, 7vw, 59px)",
                           opacity: isHeld ? 1 : 0.3,
                           transition: "opacity 0.2s",
                           border: isHeld
@@ -468,6 +470,7 @@ export const StrategyHelper = ({
                             : "1px solid #333",
                           borderRadius: "3px",
                           overflow: "hidden",
+                          flexShrink: 0,
                         }}
                       >
                         <svg
@@ -487,9 +490,9 @@ export const StrategyHelper = ({
                   style={{
                     color: isBest ? "#00ff00" : "#cccccc",
                     fontFamily: "monospace",
-                    fontSize: "clamp(0.65rem, 1.4vw, 0.85rem)",
-                    minWidth: "70px",
+                    fontSize: "clamp(0.55rem, 1.4vw, 0.85rem)",
                     textAlign: "right",
+                    flexShrink: 0,
                   }}
                 >
                   {formatEV(rec.expectedValue)}
@@ -501,11 +504,11 @@ export const StrategyHelper = ({
                     style={{
                       color: "#ff6666",
                       fontFamily: "monospace",
-                      fontSize: "clamp(0.55rem, 1.2vw, 0.75rem)",
-                      minWidth: "60px",
+                      fontSize: "clamp(0.5rem, 1.2vw, 0.75rem)",
+                      flexShrink: 0,
                     }}
                   >
-                    (-{formatEV(evDiff)})
+                    -{formatEV(evDiff)}
                   </div>
                 )}
 
@@ -516,7 +519,8 @@ export const StrategyHelper = ({
                       color: "#00ff00",
                       fontFamily: "monospace",
                       fontWeight: "bold",
-                      fontSize: "clamp(0.55rem, 1.2vw, 0.75rem)",
+                      fontSize: "clamp(0.5rem, 1.2vw, 0.75rem)",
+                      flexShrink: 0,
                     }}
                   >
                     BEST
@@ -533,9 +537,9 @@ export const StrategyHelper = ({
                     border: `1px solid ${isBest ? "#00aa00" : "#555577"}`,
                     fontWeight: "bold",
                     fontSize: "clamp(0.5rem, 1.1vw, 0.65rem)",
-                    padding: "2px 8px",
+                    padding: "2px 6px",
                     fontFamily: "monospace",
-                    marginLeft: "auto",
+                    flexShrink: 0,
                   }}
                 >
                   APPLY
